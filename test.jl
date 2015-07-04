@@ -30,3 +30,4 @@ gmm = @model GaussianMixtureModel begin
 end
 
 consts, hyperparams, params = gmm(2,2,5)
+

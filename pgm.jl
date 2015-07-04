@@ -96,7 +96,7 @@ function pb(expr::Expr, idx=-1)
 end
 
 
-function parse_pt!(arg::Expr, idx=-1)
+function parse_pt(arg::Expr, consts, hyperparams, params, idx=-1)
     if(arg.args[1] == symbol("@constant"))
         (var, idx, from, to, tp, dims) = pb(arg.args[2], idx)
         if (!haskey(consts, var))
@@ -117,6 +117,8 @@ function parse_pt!(arg::Expr, idx=-1)
         push!(params[var], (var, idx, from, to, tp, dims))
     else
     end
+
+    return consts, hyperparams, params
 end
 
 macro model(name, rest...)
@@ -125,9 +127,16 @@ macro model(name, rest...)
     println(model)
 
     #TODO: By using arrays instead, and indexing by them you can save much space
-    eval(:(consts = Dict())) # All of these should be specified
-    eval(:(hyperparams = Dict())) # When initializing for now
-    eval(:(params = Dict()))
+    # No need for globalization! :-)
+
+    #eval(:(consts = Dict())) # All of these should be specified
+    #eval(:(hyperparams = Dict())) # When initializing for now
+    #eval(:(params = Dict()))
+
+    consts = Dict()
+    hyperparams = Dict()
+    params = Dict()
+
     c = 0
     u = 0
 
@@ -136,7 +145,7 @@ macro model(name, rest...)
         if (typeof(i) == Expr) # If it is not a comment
             for (arg in i.args)
                 if(typeof(arg) == Expr)
-                    parse_pt!(arg)
+                    consts, hyperparams, params = parse_pt(arg, consts, hyperparams, params)
                 end
             end
         end
@@ -161,6 +170,8 @@ macro model(name, rest...)
             s = s * ", "
         end
     end
+
+    println(s)
 
     # I wish I had a better way to do that
     #s = parse(s)
@@ -215,7 +226,7 @@ macro model(name, rest...)
         else
             print("no d")
         end
-        return consts, hyperparams, params
+        return $consts, $hyperparams, $params
 
     end
 
