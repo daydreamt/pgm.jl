@@ -121,6 +121,10 @@ function parse_pt(arg::Expr, consts, hyperparams, params, idx=-1)
     return consts, hyperparams, params
 end
 
+macro dh(x, s)
+    return esc(:($x = $s))
+end
+
 macro model(name, rest...)
 
     eval(:(model = $(string(name)))) #Set the current model in the global scope
@@ -192,6 +196,14 @@ macro model(name, rest...)
     quote
         # Arguments: the model parameters. Returns success or false or something
 
+        # Not even the dirty hack works. I am confused.
+        #Initialize the arguments
+        #for p in $fparamnames
+        #  @dh(p, $p)
+        #  val = eval($p)
+        #  println(val)
+        end
+
         #Stupid 2 pass, now parameters are established
         for(i in $rest) # For every top line
             if (typeof(i) == Expr) # If it is not a comment
@@ -231,7 +243,9 @@ macro model(name, rest...)
             print("no d")
         end
 
-        # How do I do this?
+        # How do I get the value of a variable with a dynamic name?
+        # http://julia-programming-language.2336112.n4.nabble.com/Macro-scoping-or-hygiene-problems-td10933.html
+        # and https://groups.google.com/forum/#!topic/julia-users/BHwH1BRitRs *might* help
         for p in $fparamnames
           println(p)
         end
