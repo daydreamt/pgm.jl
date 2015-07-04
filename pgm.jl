@@ -186,8 +186,10 @@ macro model(name, rest...)
     #    end
     #end
 
-    f = parse("function " * model * " (" * s * ") println(5) end")
-    f.args[2] = quote
+    f = parse("function " * model * " (;" * s * ") println(5) end")
+    f.args[2] =
+
+    quote
         # Arguments: the model parameters. Returns success or false or something
 
         #Stupid 2 pass, now parameters are established
@@ -203,13 +205,15 @@ macro model(name, rest...)
                             lto = boundary.args[2].args[2]
                             contents = arg.args[2]
                             #println(boundary)
-                            #println(loopvar," ", typeof(loopvar)," ", lfrom, " ", typeof(lfrom), " ", lto, " ", typeof(lto))
+                            println(loopvar," ", typeof(loopvar)," ", lfrom, " ", typeof(lfrom), " ", lto, " ", typeof(lto))
                             #println(contents)
 
-                            # For this part you need the defined
+                            # For this part you need the defined fparamnames
+
                             #for k in lfrom:lto
                             #    for l in contents
                             #        println(l)
+                            #consts, hyperparams, params = parse_pt(arg, consts, hyperparams, params, k)
                             #        parse_pt!(arg, k)
                             #    end
                             #end
@@ -226,14 +230,18 @@ macro model(name, rest...)
         else
             print("no d")
         end
+
+        # How do I do this?
+        for p in $fparamnames
+          println(p)
+        end
+
         return $consts, $hyperparams, $params
 
-    end
+    end # End inner constructor function
 
     return f
 
-	#println(c)
-	#return consts, hyperparams, params, u
-end
+end # End macro
 
 end

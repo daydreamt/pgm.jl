@@ -4,6 +4,8 @@ using Base.Test
 ##########################################
 # Test internal functions
 ##########################################
+
+# Variables and domains
 @test pgm.pb((quote (pi :: (-1.0.. 10.)^(K)) end)) == (:pi, -1, -1.0, 10.0, Float64, (:K,1))
 
 ##########################################
@@ -30,4 +32,3 @@ gmm = @model GaussianMixtureModel begin
 end
 
 consts, hyperparams, params = gmm(2,2,5)
-
