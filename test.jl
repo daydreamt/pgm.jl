@@ -31,4 +31,4 @@ gmm = @model GaussianMixtureModel begin
     end
 end
 
-consts, hyperparams, params = gmm(2,2,5)
+consts, hyperparams, params = gmm(d=2,n=2,K=5)

@@ -17,6 +17,7 @@ function rand(d::Domain)
 	du = Distributions.Uniform(d.from, d.to)
 	return rand(du)
 end
+
 function parse_from_to(expr)
     println(expr)
     tp = nothing
@@ -144,6 +145,8 @@ macro model(name, rest...)
     c = 0
     u = 0
 
+
+
     # First pass to establish parameters
     for(i in rest) # For every top line
         if (typeof(i) == Expr) # If it is not a comment
@@ -165,44 +168,13 @@ macro model(name, rest...)
     end
 
     println(fparamnames)
-    # Generate the function paramters by a nice string concatenation
-    s = ""
-    for (idx, i) in enumerate(fparamnames)
-        #s = s * "(" * string(i) * "=0)"
-        s = s * string(i) * "=0"
-        if (idx < length(fparamnames))
-            s = s * ", "
-        end
-    end
 
-    println(s)
-
-    # I wish I had a better way to do that
-    #s = parse(s)
-    # s.head = :kw
-    # println(s, " is of type ", typeof(s), s.head)
-    #return :(function f((:($s))) println(5) end)
-    #return function f(:(($fparamnames)...)) println(5))
-    #q = quote
-    #    function f2($s)
-    #        println($s)
-    #        println(5)
-    #    end
-    #end
-
-    f = parse("function " * model * " (;" * s * ") println(5) end")
+    f = parse("function " * model * " (;ks... ) end")
     f.args[2] =
 
     quote
         # Arguments: the model parameters. Returns success or false or something
-
-        # Not even the dirty hack works. I am confused.
         #Initialize the arguments
-        #for p in $fparamnames
-        #  @dh(p, $p)
-        #  val = eval($p)
-        #  println(val)
-        end
 
         #Stupid 2 pass, now parameters are established
         for(i in $rest) # For every top line
@@ -217,12 +189,12 @@ macro model(name, rest...)
                             lto = boundary.args[2].args[2]
                             contents = arg.args[2]
                             #println(boundary)
-                            println(loopvar," ", typeof(loopvar)," ", lfrom, " ", typeof(lfrom), " ", lto, " ", typeof(lto))
+                            println(loopvar," ", typeof(loopvar)," lfrom: ", lfrom, " ", typeof(lfrom), " lto: ", Dict(ks)[symbol(lto)], " ", typeof(lto))
                             #println(contents)
 
-                            # For this part you need the defined fparamnames
+                            # For this part you need the defined fparamnames, which are given to the constructor
 
-                            #for k in lfrom:lto
+                            #for k in lfrom:Dict(ks)[symbol(lto)]
                             #    for l in contents
                             #        println(l)
                             #consts, hyperparams, params = parse_pt(arg, consts, hyperparams, params, k)
@@ -235,19 +207,6 @@ macro model(name, rest...)
                     end
                 end
             end
-        end
-
-        if :d in ($fparamnames)
-            println("The value of d is ", d)
-        else
-            print("no d")
-        end
-
-        # How do I get the value of a variable with a dynamic name?
-        # http://julia-programming-language.2336112.n4.nabble.com/Macro-scoping-or-hygiene-problems-td10933.html
-        # and https://groups.google.com/forum/#!topic/julia-users/BHwH1BRitRs *might* help
-        for p in $fparamnames
-          println(p)
         end
 
         return $consts, $hyperparams, $params
