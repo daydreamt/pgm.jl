@@ -145,8 +145,6 @@ macro model(name, rest...)
     c = 0
     u = 0
 
-
-
     # First pass to establish parameters
     for(i in rest) # For every top line
         if (typeof(i) == Expr) # If it is not a comment
@@ -194,13 +192,13 @@ macro model(name, rest...)
 
                             # For this part you need the defined fparamnames, which are given to the constructor
 
-                            #for k in lfrom:Dict(ks)[symbol(lto)]
-                            #    for l in contents
-                            #        println(l)
-                            #consts, hyperparams, params = parse_pt(arg, consts, hyperparams, params, k)
-                            #        parse_pt!(arg, k)
-                            #    end
-                            #end
+                            for k in lfrom:Dict(ks)[symbol(lto)]
+                                println(contents)
+                                #for l in contents
+                                #    println(l)
+                                #    consts, hyperparams, params = parse_pt(arg, consts, hyperparams, params, idx=k)
+                                # end
+                            end
                         else
                             #println("\"", arg, "\" which is of type:", typeof(arg)," has args of type: ", typeof(arg.args[1]))
                         end
