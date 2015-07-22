@@ -96,8 +96,9 @@ function pb(expr::Expr, idx=-1)
     return var, idx, from, to, tp, dims
 end
 
-
 function parse_pt(arg::Expr, consts, hyperparams, params, idx=-1)
+
+    before = (length(consts), length(hyperparams), length(params))
     if(arg.args[1] == symbol("@constant"))
         (var, idx, from, to, tp, dims) = pb(arg.args[2], idx)
         if (!haskey(consts, var))
@@ -117,13 +118,18 @@ function parse_pt(arg::Expr, consts, hyperparams, params, idx=-1)
         end
         push!(params[var], (var, idx, from, to, tp, dims))
     else
+        if arg.head != :line
+            println("Head: " , arg.head)
+            println("First arg: ", arg.args[1])
+            println(arg)
+        end
     end
 
+    after = (length(consts), length(hyperparams), length(params))
+    if before != after
+        println("Changed params")
+    end
     return consts, hyperparams, params
-end
-
-macro dh(x, s)
-    return esc(:($x = $s))
 end
 
 macro model(name, rest...)
@@ -193,11 +199,23 @@ macro model(name, rest...)
                             # For this part you need the defined fparamnames, which are given to the constructor
 
                             for k in lfrom:Dict(ks)[symbol(lto)]
-                                println(contents)
-                                #for l in contents
-                                #    println(l)
+                                #println(contents)
+                                for l in contents.args
+                                    if (typeof(l) == Expr) # If it is not a comment
+                                        println("------------")
+                                        println(l)
+                                        println("**")
+                                        println(l.head)
+                                        println(l.args)
+                                        println("-------------")
+                                        for (argg in l.args)
+                                            if(typeof(argg) == Expr)
+                                                consts, hyperparams, params = parse_pt(argg, $consts, $hyperparams, $params, k)
+                                            end
+                                        end
+                                    end
                                 #    consts, hyperparams, params = parse_pt(arg, consts, hyperparams, params, idx=k)
-                                # end
+                                 end
                             end
                         else
                             #println("\"", arg, "\" which is of type:", typeof(arg)," has args of type: ", typeof(arg.args[1]))

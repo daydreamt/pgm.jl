@@ -7,6 +7,7 @@ using Base.Test
 
 # Variables and domains
 @test pgm.pb((quote (pi :: (-1.0.. 10.)^(K)) end)) == (:pi, -1, -1.0, 10.0, Float64, (:K,1))
+@test pgm.pb(quote sig::Float64^(d, d) end) == (:sig,-1,:inf,:inf,:Float64,(:d,:d))
 
 ##########################################
 # Test some models
