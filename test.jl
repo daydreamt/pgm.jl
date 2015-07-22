@@ -8,7 +8,7 @@ using Base.Test
 # Variables and domains
 @test pgm.pb((quote (pi :: (-1.0.. 10.)^(K)) end)) == (:pi, -1, -1.0, 10.0, Float64, (:K,1))
 @test pgm.pb(quote sig::Float64^(d, d) end) == (:sig,-1,:inf,:inf,:Float64,(:d,:d))
-
+@test pgm.parse_pt(parse("@param sig[k]::Float64^(d,d) Symbol"), Dict(), Dict(), Dict(), 1) == (Dict{Any,Any}(),Dict{Any,Any}(),{:sig=>Set{Any}({(:sig,1,:inf,:inf,:Float64,(:d,:d))})})
 ##########################################
 # Test some models
 ##########################################

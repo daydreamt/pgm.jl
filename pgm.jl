@@ -63,7 +63,9 @@ function pb(expr::Expr, idx=-1)
         var = l
     else #array
         var = l.args[1]
-        idx = l.args[2]
+        if idx == -1
+            idx = l.args[2]
+        end
     end
 
     # Right is now the type
@@ -96,6 +98,7 @@ function pb(expr::Expr, idx=-1)
     return var, idx, from, to, tp, dims
 end
 
+
 function parse_pt(arg::Expr, consts, hyperparams, params, idx=-1)
 
     before = (length(consts), length(hyperparams), length(params))
@@ -115,18 +118,19 @@ function parse_pt(arg::Expr, consts, hyperparams, params, idx=-1)
         (var, idx, from, to, tp, dims) = pb(arg.args[2], idx)
         if (!haskey(params, var))
             params[var] = Set()
+        else
+            println((var, idx, from, to, tp, dims))
         end
+
         push!(params[var], (var, idx, from, to, tp, dims))
     else
         if arg.head != :line
-            println("Head: " , arg.head)
-            println("First arg: ", arg.args[1])
-            println(arg)
+          println("Error, this should have worked.")
         end
     end
 
     after = (length(consts), length(hyperparams), length(params))
-    if before != after
+    if before != after && false
         println("Changed params")
     end
     return consts, hyperparams, params
@@ -181,6 +185,9 @@ macro model(name, rest...)
         #Initialize the arguments
 
         #Stupid 2 pass, now parameters are established
+
+        #TODO: FIRST REPLACE THE PARAMETERS IN PARAMS, CONSTANTS, HYPERPARAMS WITH THE GIVEN ONES
+
         for(i in $rest) # For every top line
             if (typeof(i) == Expr) # If it is not a comment
                 for (arg in i.args)
@@ -202,17 +209,14 @@ macro model(name, rest...)
                                 #println(contents)
                                 for l in contents.args
                                     if (typeof(l) == Expr) # If it is not a comment
-                                        println("------------")
-                                        println(l)
-                                        println("**")
-                                        println(l.head)
-                                        println(l.args)
-                                        println("-------------")
-                                        for (argg in l.args)
-                                            if(typeof(argg) == Expr)
-                                                consts, hyperparams, params = parse_pt(argg, $consts, $hyperparams, $params, k)
-                                            end
-                                        end
+                                        println("------start------")
+                                        println(l, " ", typeof(l.head))
+                                        #println("**")
+                                        #println(l.head)
+                                        #println(l.args)
+                                        consts, hyperparams, params = parse_pt(l, $consts, $hyperparams, $params, k)
+                                        #end
+                                        println("------end-------")
                                     end
                                 #    consts, hyperparams, params = parse_pt(arg, consts, hyperparams, params, idx=k)
                                  end
@@ -232,5 +236,6 @@ macro model(name, rest...)
     return f
 
 end # End macro
+
 
 end
