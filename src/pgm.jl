@@ -95,6 +95,21 @@ function pb(expr::Expr, idx=-1)
         #println(expr.args)
     end
 
+    # Clean up
+    if dims == nothing || dims == 1
+        dims = (1,1)
+    end
+    #TODO: Think about concrete types. Inference will be hard for large domains.
+    typelookup = Dict()
+    typelookup[:float64] = Float64
+    typelookup[:Float64] = Float64
+    typelookup[:int] = Int
+    typelookup[:Integer] = Int64
+    typelookup[:integer] = Int64
+
+    if haskey(typelookup, tp)
+      tp = typelookup[tp]
+    end
     return var, idx, from, to, tp, dims
 end
 
