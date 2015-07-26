@@ -19,7 +19,6 @@ function rand(d::Domain)
 end
 
 function parse_from_to(expr)
-    println(expr)
     tp = nothing
     from = expr.args[2]
     to = expr.args[3]
@@ -112,36 +111,50 @@ function pb(expr::Expr, idx=-1)
     end
     return var, idx, from, to, tp, dims
 end
-
-
-function parse_pt(arg::Expr, consts, hyperparams, params, idx=-1)
+function parse_pt(arg::Expr, consts, hyperparams, params, idx=-1, distvalue=None)
 
     before = (length(consts), length(hyperparams), length(params))
-    if(arg.args[1] == symbol("@constant"))
+
+    if(arg.args[1] in Set{Symbol}([symbol("@constant"),  symbol("@hyperparam"), symbol("@param")]))
         (var, idx, from, to, tp, dims) = pb(arg.args[2], idx)
-        if (!haskey(consts, var))
-            consts[var] = Set()
-        end
-        push!(consts[var], (var, idx, from, to, tp, dims))
-    elseif(arg.args[1] == symbol("@hyperparam"))
-        (var, idx, from, to, tp, dims) = pb(arg.args[2], idx)
-        if (!haskey(hyperparams, var))
-            hyperparams[var] = Set()
-        end
-        push!(hyperparams[var], (var, idx, from, to, tp, dims))
-    elseif(arg.args[1] == symbol("@param"))
-        (var, idx, from, to, tp, dims) = pb(arg.args[2], idx)
-        if (!haskey(params, var))
-            params[var] = Set()
+
+        if(arg.args[1] == symbol("@constant"))
+          if (!haskey(consts, var))
+              consts[var] = Set()
+          end
+          push!(consts[var], (var, idx, from, to, tp, dims, :const))
+
+        elseif(arg.args[1] == symbol("@hyperparam"))
+          if (!haskey(hyperparams, var))
+              hyperparams[var] = Set()
+          end
+          push!(hyperparams[var], (var, idx, from, to, tp, dims, :hyperparam))
+        elseif(arg.args[1] == symbol("@param"))
+          if (!haskey(params, var))
+              params[var] = Set()
+          end
+          push!(params[var], (var, idx, from, to, tp, dims, :unk))
         else
-            println((var, idx, from, to, tp, dims))
+          println("This should not happen")
         end
 
-        push!(params[var], (var, idx, from, to, tp, dims))
-    else
-        if arg.head != :line
-          println("Error, this should have worked.")
+
+    elseif(arg.head == :macrocall)
+
+      if arg.args[1] == symbol("@~") # type foo ~ bar
+        (var, idx, from, to, tp, dims) = pb(arg.args[2], idx)
+        #(var, idx, from, to, tp, dims, _) = parse_pt(Expr(:macrocall, :@param, arg.args[2]), consts, hyperparams, params, idx, arg.args[3])
+        if (!haskey(params, var))
+              params[var] = Set()
         end
+        push!(params[var], (var, idx, from, to, tp, dims, arg.args[3]))
+      end
+
+    else
+      if arg.head != :line
+        println("parse_pt called with something not a line: ", arg.head)
+        #println(arg.args)
+      end
     end
 
     after = (length(consts), length(hyperparams), length(params))
@@ -230,6 +243,7 @@ macro model(name, rest...)
                                         #println(l.head)
                                         #println(l.args)
                                         consts, hyperparams, params = parse_pt(l, $consts, $hyperparams, $params, k)
+                                        #TODO: If type == bla ~ blu then ...
                                         #end
                                         println("------end-------")
                                     end

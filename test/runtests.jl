@@ -5,13 +5,15 @@ using Base.Test
 # Test internal functions
 ##########################################
 
-# Variables and domains
+# Variables and domains - there is no mention here of what values they have (const/ from a distribution etc)
 @test pgm.pb((quote (pi :: (-1.0.. 10.)^(K)) end)) == (:pi, -1, -1.0, 10.0, Float64, (:K,1))
 @test pgm.pb(quote sig::Float64^(d, d) end) == (:sig,-1,:inf,:inf, Float64,(:d,:d))
 @test pgm.pb((quote alpha[u] :: (1 .. 3) end), 100) == (:alpha, 100, 1, 3, Int64, (1,1))
 @test pgm.pb((quote beta[BEN] :: Float64^(2,5) end), 100) == (:beta, 100, :inf, :inf, Float64, (2,5))
+@test pgm.pb((quote p[i] end)) == (:p, -1, :inf, :inf, :i, (1,1))
 
-@test pgm.parse_pt(parse("@param sig[k]::Float64^(d,d) Symbol"), Dict(), Dict(), Dict(), 1) == (Dict{Any,Any}(),Dict{Any,Any}(),{:sig=>Set{Any}({(:sig,1,:inf,:inf,Float64,(:d,:d))})})
+@test pgm.parse_pt(parse("@param sig[k]::Float64^(d,d) Symbol"), Dict(), Dict(), Dict(), 1) == (Dict{Any,Any}(),Dict{Any,Any}(),{:sig=>Set{Any}({(:sig,1,:inf,:inf,Float64,(:d,:d), :unk)})})
+pgm.parse_pt(quote @param beta[i] ~ Categorical(2) end, Dict(), Dict(), Dict(), 1)
 ##########################################
 # Test some models
 ##########################################
