@@ -163,7 +163,6 @@ function parse_pt(arg::Expr, consts, hyperparams, params, idx=-1, distvalue=None
     end
     return consts, hyperparams, params
 end
-
 macro model(name, rest...)
 
     eval(:(model = $(string(name)))) #Set the current model in the global scope
@@ -209,12 +208,47 @@ macro model(name, rest...)
     f.args[2] =
 
     quote
+
+        paramdict = Dict{}()
+        for (k,v) in ks
+            paramdict[k]=v
+        end
+
         # Arguments: the model parameters. Returns success or false or something
         #Initialize the arguments
 
         #Stupid 2 pass, now parameters are established
 
-        #TODO: FIRST REPLACE THE PARAMETERS IN PARAMS, CONSTANTS, HYPERPARAMS WITH THE GIVEN ONES
+        # Replace constants and metaprameters
+        for cs in $consts #cs = (:name, {})
+          if cs[1] in keys(paramdict)
+            s = deepcopy(cs[2]) #Copy set to modify the original
+            v = paramdict[cs[1]]
+            for c in s
+              # See if the current value is :constant instead of its value
+              if c[7] == :const
+                c_updated = (c[1], c[2], c[3], c[4], c[5], c[6], v) #TODO
+                delete!(cs[2], c)
+                push!(cs[2], c_updated)
+              end
+            end
+          end
+        end
+        #Do the same for metaparameters (TODO: DRY) (TODO: merge sets or something with a merge(set1,set2) that works)
+        for hp in $hyperparams # = (:name, {})
+          if hp[1] in keys(paramdict)
+            s = deepcopy(hp[2]) #Copy set to modify the original
+            v = paramdict[hp[1]]
+            for c in s
+              # See if the current value is :hyperparameter instead of its value
+              if c[7] == :hyperparam
+                c_updated = (c[1], c[2], c[3], c[4], c[5], c[6], v) #TODO
+                delete!(hp[2], c)
+                push!(hp[2], c_updated)
+              end
+            end
+          end
+        end
 
         for(i in $rest) # For every top line
             if (typeof(i) == Expr) # If it is not a comment
