@@ -194,9 +194,9 @@ macro model(name, rest...)
     end
 
     # This closure expects them to create the function
-    fparamnames = {}
+    fparamnames = Any[]
     for k in keys(consts)
-        push!(fparamnames,k )
+        push!(fparamnames,k)
     end
     for k in keys(hyperparams)
         push!(fparamnames, k)
