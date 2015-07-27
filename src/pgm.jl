@@ -78,7 +78,6 @@ function pb(expr::Expr, idx=-1)
     if (typeof(expr) == Symbol)
         tp = expr
     elseif (expr.head == :.//=)
-        println(expr.args)
         # Left we either have the type# or from_to
         if (typeof(expr.args[1]) == Symbol)
             tp = expr.args[1]
@@ -135,7 +134,7 @@ function parse_pt(arg::Expr, consts, hyperparams, params, idx=-1, distvalue=None
           end
           push!(params[var], (var, idx, from, to, tp, dims, :unk))
         else
-          println("This should not happen")
+          error("This should not happen")
         end
 
 
@@ -163,24 +162,16 @@ function parse_pt(arg::Expr, consts, hyperparams, params, idx=-1, distvalue=None
     end
     return consts, hyperparams, params
 end
+
 macro model(name, rest...)
 
     eval(:(model = $(string(name)))) #Set the current model in the global scope
-    println(model)
+    println("Setting the model to: ", model)
 
-    #TODO: By using arrays instead, and indexing by them you can save much space
-    # No need for globalization! :-)
-
-    #eval(:(consts = Dict())) # All of these should be specified
-    #eval(:(hyperparams = Dict())) # When initializing for now
-    #eval(:(params = Dict()))
-
+    #Optimisation: By using arrays instead, and indexing by them you can save much space
     consts = Dict()
     hyperparams = Dict()
     params = Dict()
-
-    c = 0
-    u = 0
 
     # First pass to establish parameters
     for(i in rest) # For every top line
@@ -281,7 +272,6 @@ macro model(name, rest...)
                                         #end
                                         println("------end-------")
                                     end
-                                #    consts, hyperparams, params = parse_pt(arg, consts, hyperparams, params, idx=k)
                                  end
                             end
                         else
