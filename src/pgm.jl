@@ -1,6 +1,6 @@
 module pgm
 
-using distributions
+include("distributions.jl")
 
 export @model
 

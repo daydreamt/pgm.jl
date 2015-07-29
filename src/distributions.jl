@@ -1,7 +1,3 @@
-module distributions
-
-export supported_distributions
-
 # For shits and giggles
 using Distributions
 import Distributions.rand
@@ -25,5 +21,3 @@ end
 supported_distributions = {:Categorical=>{:parameters=>1}, :MultivariateNormal=>{:parameters=>2}}
 
 # The other functions and the functionality of this module I must think about
-
-end
