@@ -1,22 +1,8 @@
 module pgm
 
+using distributions
+
 export @model
-
-# For shits and giggles
-using Distributions
-import Distributions.rand
-
-# Let's say all variables will have a state and domain
-type Domain
-	from::Int
-	to::Int
-end
-
-#Test
-function rand(d::Domain)
-	du = Distributions.Uniform(d.from, d.to)
-	return rand(du)
-end
 
 function parse_from_to(expr)
     tp = nothing
@@ -146,6 +132,17 @@ function parse_pt(arg::Expr, consts, hyperparams, params, idx=-1, distvalue=None
         if (!haskey(params, var))
               params[var] = Set()
         end
+
+        # Parse the RHS of ~ in arg.args[3]
+        println("RHS: ", arg.args[3], " ", typeof(arg.args[3]))
+        println(arg.args[3].head)
+        distname = arg.args[3].args[1]
+        assert(distname in keys(supported_distributions))
+        # Parse every parameter of the distribution
+        for i=1:supported_distributions[distname][:parameters]
+          println("||||", arg.args[3].args[1 + i], "|||") #TODO: Use consts, hyperparams, params to replace what is needed
+        end
+
         push!(params[var], (var, idx, from, to, tp, dims, arg.args[3]))
       end
 
@@ -289,6 +286,5 @@ macro model(name, rest...)
     return f
 
 end # End macro
-
 
 end
