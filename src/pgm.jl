@@ -106,7 +106,7 @@ function pb(expr::Expr, idx=-1)
 
     return var, idx, from, to, tp, dims
 end
-function parse_pt(arg::Expr, consts, hyperparams, params, idx=-1, distvalue=None)
+function parse_pt(arg::Expr, consts, hyperparams, params, idx=-1, distvalue=None; loopvars=Dict())
 
     before = (length(consts), length(hyperparams), length(params))
 
@@ -154,7 +154,13 @@ function parse_pt(arg::Expr, consts, hyperparams, params, idx=-1, distvalue=None
         distparams = Any[]
         for i=1:supported_distributions[distname][:parameters]
           println("||||", arg.args[3].args[1 + i], "|||") #TODO: Use consts, hyperparams, params to replace what is needed
-          # PARSE THIS SHIT BY HAVING KNOWLEDGE OF LOOP VARIABLE NAMES
+          # PARSE THIS BY HAVING KNOWLEDGE OF LOOP VARIABLE NAMES, E.G AS AN EXTRA ARGUMENT
+
+          #Say we have loopvars = {:i=>2, :j=>3}
+          # How do you parse :(sig[z[i]])?
+          # while ...
+          # if arg[i] in loopvars
+          # replace?
           push!(distparams, arg.args[3].args[1 + i])
         end
 
@@ -259,6 +265,7 @@ macro model(name, rest...)
                     #println(arg)
                     if(typeof(arg) == Expr)
                         if(arg.head == :for) # We have a loop
+
                             boundary = arg.args[1]
                             loopvar = boundary.args[1]
                             lfrom = boundary.args[2].args[1]
@@ -270,6 +277,7 @@ macro model(name, rest...)
 
                             # For this part you need the defined fparamnames, which are given to the constructor
 
+                            #TODO: Nested loops?
                             for k in lfrom:Dict(ks)[symbol(lto)]
                                 #println(contents)
                                 for l in contents.args
@@ -279,7 +287,7 @@ macro model(name, rest...)
                                         #println("**")
                                         #println(l.head)
                                         #println(l.args)
-                                        consts, hyperparams, params = parse_pt(l, $consts, $hyperparams, $params, k)
+                                        consts, hyperparams, params = parse_pt(l, $consts, $hyperparams, $params, k, loopvars={loopvar=>k})
                                         #TODO: If type == bla ~ blu then ...
                                         #end
                                         println("------end-------")
