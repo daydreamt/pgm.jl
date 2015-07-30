@@ -1,4 +1,4 @@
-require GraphViz
+using GraphViz
 
 function make_dot(params, hyperparams, consts, name)
   u = merge(consts, params, hyperparams)
