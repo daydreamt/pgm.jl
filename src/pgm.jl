@@ -151,17 +151,23 @@ function parse_pt(arg::Expr, consts, hyperparams, params, idx=-1, distvalue=None
         assert(distname in keys(supported_distributions))
         # Parse every parameter of the distribution
 
+        function parse_rhs(expr_, loopvars_)
+          if typeof(expr_) == Expr && expr_.head == :ref
+            if typeof(expr_.args[2]) == Expr
+              expr_.args[2] = parse_rhs(expr_.args[2], loopvars_)
+            elseif expr_.args[2] in keys(loopvars_)
+              expr_.args[2] = loopvars[expr_.args[2]]
+            else
+            end
+          end
+          return expr_
+        end
+
         distparams = Any[]
         for i=1:supported_distributions[distname][:parameters]
-          println("||||", arg.args[3].args[1 + i], "|||") #TODO: Use consts, hyperparams, params to replace what is needed
+          # println("||||", arg.args[3].args[1 + i], "|||") #TODO: Use consts, hyperparams, params to replace what is needed
           # PARSE THIS BY HAVING KNOWLEDGE OF LOOP VARIABLE NAMES, E.G AS AN EXTRA ARGUMENT
-
-          #Say we have loopvars = {:i=>2, :j=>3}
-          # How do you parse :(sig[z[i]])?
-          # while ...
-          # if arg[i] in loopvars
-          # replace?
-          push!(distparams, arg.args[3].args[1 + i])
+          push!(distparams,parse_rhs(arg.args[3].args[1 + i], loopvars))
         end
 
         push!(params[var], (var, idx, from, to, tp, dims, (distname, distparams)))
