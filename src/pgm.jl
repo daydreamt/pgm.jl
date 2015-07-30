@@ -2,6 +2,11 @@ module pgm
 
 include("distributions.jl")
 
+if (OS_NAME != :Windows)
+  include("visualisation.jl")
+  #export plot(model)
+end
+
 export @model
 
 function parse_from_to(expr)
@@ -94,6 +99,11 @@ function pb(expr::Expr, idx=-1)
     if haskey(typelookup, tp)
       tp = typelookup[tp]
     end
+
+    if !(tp in values(typelookup))
+      println("POSSIBLE ERROR: ", tp, " NOT IN KNOWN TYPES")
+    end
+
     return var, idx, from, to, tp, dims
 end
 function parse_pt(arg::Expr, consts, hyperparams, params, idx=-1, distvalue=None)
@@ -128,6 +138,7 @@ function parse_pt(arg::Expr, consts, hyperparams, params, idx=-1, distvalue=None
 
       if arg.args[1] == symbol("@~") # type foo ~ bar
         (var, idx, from, to, tp, dims) = pb(arg.args[2], idx)
+        println(var, idx, from, to, tp, dims)
         #(var, idx, from, to, tp, dims, _) = parse_pt(Expr(:macrocall, :@param, arg.args[2]), consts, hyperparams, params, idx, arg.args[3])
         if (!haskey(params, var))
               params[var] = Set()
@@ -139,11 +150,15 @@ function parse_pt(arg::Expr, consts, hyperparams, params, idx=-1, distvalue=None
         distname = arg.args[3].args[1]
         assert(distname in keys(supported_distributions))
         # Parse every parameter of the distribution
+
+        distparams = Any[]
         for i=1:supported_distributions[distname][:parameters]
           println("||||", arg.args[3].args[1 + i], "|||") #TODO: Use consts, hyperparams, params to replace what is needed
+          # PARSE THIS SHIT BY HAVING KNOWLEDGE OF LOOP VARIABLE NAMES
+          push!(distparams, arg.args[3].args[1 + i])
         end
 
-        push!(params[var], (var, idx, from, to, tp, dims, arg.args[3]))
+        push!(params[var], (var, idx, from, to, tp, dims, (distname, distparams)))
       end
 
     else

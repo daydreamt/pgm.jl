@@ -12,8 +12,10 @@ using Base.Test
 @test pgm.pb((quote beta[BEN] :: Float64^(2,5) end), 100) == (:beta, 100, :inf, :inf, Float64, (2,5))
 @test pgm.pb((quote p[i] end)) == (:p, -1, :inf, :inf, :i, (1,1))
 
+println(pgm.parse_pt((quote x[i] ~ MultivariateNormal(mu[z[i]], sig[z[i]]) end),  Dict(), Dict(), Dict(), 1))
+
 @test pgm.parse_pt(parse("@param sig[k]::Float64^(d,d) Symbol"), Dict(), Dict(), Dict(), 1) == (Dict{Any,Any}(),Dict{Any,Any}(), {:sig=>Set{Any}(Any[(:sig,1,:inf,:inf,Float64,(:d,:d), :unk)])})
-pgm.parse_pt(quote @param beta[i] ~ Categorical(2) end, Dict(), Dict(), Dict(), 1)
+println(pgm.parse_pt(parse("beta[i] ~ Categorical(2)"), Dict(), Dict(), Dict(), 1))
 ##########################################
 # Test some models
 ##########################################
@@ -38,3 +40,5 @@ gmm = @model GaussianMixtureModel begin
 end
 
 consts, hyperparams, params = gmm(d=2,n=2,K=5)
+
+println(params[:x])
