@@ -8,7 +8,7 @@ function make_dot(params, hyperparams, consts, name)
   for (varname, set) in u
     println("Variable with name: ", varname)
     for var in set
-      println("index: ", var[2], " distribution and deps: ", var[7]) #TODO: MultivariateNormal(mu[z[i]],sig[z[i]]) needs splitting to a tuple (Dist, deps) and only deps need replacing
+      println("index: ", var[2], " distribution and deps: ", var[7])
       for othervar in var[7][2]
         s = string(s, othervar, " -> ", var, ";\n")
       end
