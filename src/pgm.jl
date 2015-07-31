@@ -35,63 +35,55 @@ function parse_dims(expr)
     return (dim1, dim2)
 end
 
-function pb(expr::Expr, idx=-1)
-    s = string(expr)
-    if (contains(s, ">>>=") || contains(s, ".//="))
-        error("Sorry, you caught the dirty hack, can't parse that.")
-    end
-    expr = parse(replace(s, "::", ">>>=")) #Manipulate the precedence priority
+function parse_lhs(var, idx)
 
-    # If it is a block, replace it by the block's contents
-    if (expr.head == :block)
-        expr = expr.args[length(expr.args)]
-    end
+  #println("Before: ", var, "|||", typeof(var),"|||",idx,)
+  while (typeof(var) == Expr && var.head == :ref)
+  #  push!(idx, var.args[2]) #TODO
+    var = var.args[1]
+  end
 
-    # Left is now new
-    l = expr.args[1]
-    if (typeof(l) == Symbol) #Great, no array
-        var = l
-    else #array
-        var = l.args[1]
-        if idx == -1
-            idx = l.args[2]
-        end
+  #println("After: ", var, "|||", typeof(var),"|||",idx,)
+  if (typeof(var) == Symbol) #Great, no array
+  else #array
+    var = var.args[1]
+    if idx == Any[]
+      idx = var.args[2]
     end
+  end
 
-    # Right is now the type
-    # How do I macros in macros?
-    expr = parse(replace(string(expr.args[2]), "^", ".//="))
-    from = :inf
-    to = :inf
-    tp = nothing
-    dims = nothing
+  return var, idx
+
+end
+
+function parse_typeside(expr)
+
+    from = :inf; to = :inf; tp = nothing; dims = nothing;
 
     if (typeof(expr) == Symbol)
-        tp = expr
+      tp = expr
+
     elseif (expr.head == :.//=)
-        # Left we either have the type# or from_to
+      # Left we either have the type# or from_to
         if (typeof(expr.args[1]) == Symbol)
-            tp = expr.args[1]
+          tp = expr.args[1]
         else
-            from, to, tp = parse_from_to(expr.args[1])
+          from, to, tp = parse_from_to(expr.args[1])
         end
         # Right we have either one dimension, or 2
         dims = parse_dims(expr.args[2])
     elseif (expr.args[1] == :..)
-        from, to, tp = parse_from_to(expr)
+      from, to, tp = parse_from_to(expr)
 
     else
-        #println(expr.args)
+      #println(expr.args)
     end
 
-    # Clean up
-    if dims == nothing || dims == 1
-        dims = (1,1)
-    end
     #TODO: Think about concrete types. Inference will be hard for large domains.
     typelookup = Dict()
     typelookup[:float64] = Float64
     typelookup[:Float64] = Float64
+    typelookup[:Int] = Int
     typelookup[:int] = Int
     typelookup[:Integer] = Int64
     typelookup[:integer] = Int64
@@ -101,11 +93,54 @@ function pb(expr::Expr, idx=-1)
     end
 
     if !(tp in values(typelookup))
-      println("POSSIBLE ERROR: ", tp, " NOT IN KNOWN TYPES")
+      error("POSSIBLE ERROR: ", tp, " NOT IN KNOWN TYPES")
     end
+
+    return from, to, tp, dims
+end
+
+
+function pb(expr::Expr, idx=Any[])
+    idx = idx
+
+    # If it is a block, replace it by the block's contents
+    if (expr.head == :block)
+        expr = expr.args[length(expr.args)]
+    end
+
+    s = string(expr)
+    if (contains(s, ">>>=") || contains(s, ".//="))
+        error("Sorry, you caught the dirty hack, can't parse that.")
+    end
+
+    expr = parse(replace(s, "::", ">>>=")) #Manipulate the precedence priority
+    from = :inf; to = :inf; tp = nothing; dims = nothing;
+    if expr.head == :>>>=
+      # Right is now the type
+      from, to, tp, dims = parse_typeside(parse(replace(string(expr.args[2]), "^", ".//=")))
+      # Left is now new
+      l = expr.args[1]
+    elseif expr.head == :ref
+      l = expr
+    else
+      error("Uknown expression of type ", expr.head)
+    end
+
+    var, idx = parse_lhs(l, idx)
+
+    if idx == Any[] #Some test compatibility
+      idx = -1
+    end
+
+    # Clean up
+    if dims == nothing || dims == 1
+        dims = (1,1)
+    end
+
 
     return var, idx, from, to, tp, dims
 end
+
 function parse_pt(arg::Expr, consts, hyperparams, params, idx=-1, distvalue=None; loopvars=Dict())
 
     before = (length(consts), length(hyperparams), length(params))
@@ -138,18 +173,14 @@ function parse_pt(arg::Expr, consts, hyperparams, params, idx=-1, distvalue=None
 
       if arg.args[1] == symbol("@~") # type foo ~ bar
         (var, idx, from, to, tp, dims) = pb(arg.args[2], idx)
-        println(var, idx, from, to, tp, dims)
-        #(var, idx, from, to, tp, dims, _) = parse_pt(Expr(:macrocall, :@param, arg.args[2]), consts, hyperparams, params, idx, arg.args[3])
-        if (!haskey(params, var))
+
+      if (!haskey(params, var))
               params[var] = Set()
         end
 
         # Parse the RHS of ~ in arg.args[3]
-        println("RHS: ", arg.args[3], " ", typeof(arg.args[3]))
-        println(arg.args[3].head)
         distname = arg.args[3].args[1]
         assert(distname in keys(supported_distributions))
-        # Parse every parameter of the distribution
 
         function parse_rhs(expr_, loopvars_)
           if typeof(expr_) == Expr && expr_.head == :ref
@@ -163,6 +194,7 @@ function parse_pt(arg::Expr, consts, hyperparams, params, idx=-1, distvalue=None
           return expr_
         end
 
+        # Parse every parameter of the distribution
         distparams = Any[]
         for i=1:supported_distributions[distname][:parameters]
           # println("||||", arg.args[3].args[1 + i], "|||") #TODO: Use consts, hyperparams, params to replace what is needed
