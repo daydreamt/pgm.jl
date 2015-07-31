@@ -12,10 +12,12 @@ using Base.Test
 @test pgm.pb((quote beta[BEN] :: Float64^(2,5) end), 100) == (:beta, 100, :inf, :inf, Float64, (2,5))
 @test pgm.pb((quote p[i] end)) == (:p, -1, :inf, :inf, nothing, (1,1))
 
-println(pgm.parse_pt((quote x[i] ~ MultivariateNormal(mu[z[i]], sig[z[i]]) end),  Dict(), Dict(), Dict(), 1))
+@test (pgm.parse_pt( (quote x[i] ~ MultivariateNormal(mu[z[i]], sig[z[i]]) end),  Dict(), Dict(), Dict(), 1, loopvars={:i=>3})) ==
+      (Dict{Any,Any}(),Dict{Any,Any}(),{:x=>Set{Any}({(:x,1,:inf,:inf,nothing,(1,1),(:MultivariateNormal,{:(mu[z[3]]),:(sig[z[3]])}))})})
 
 @test pgm.parse_pt(parse("@param sig[k]::Float64^(d,d) Symbol"), Dict(), Dict(), Dict(), 1) == (Dict{Any,Any}(),Dict{Any,Any}(), {:sig=>Set{Any}(Any[(:sig,1,:inf,:inf,Float64,(:d,:d), :unk)])})
-println(pgm.parse_pt(parse("beta[i] ~ Categorical(2)"), Dict(), Dict(), Dict(), 1))
+@test (pgm.parse_pt(parse("beta[i] ~ Categorical(2)"), Dict(), Dict(), Dict(), 1)) ==
+      (Dict{Any,Any}(),Dict{Any,Any}(),{:beta=>Set{Any}({(:beta,1,:inf,:inf,nothing,(1,1),(:Categorical,{2}))})})
 
 ##########################################
 # Test some models
@@ -40,4 +42,4 @@ gmm = @model GaussianMixtureModel begin
     end
 end
 
-consts, hyperparams, params = gmm(d=2,n=2,K=5)
+consts, hyperparams, params = gmm(d=2,n=2,K=2)

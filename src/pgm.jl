@@ -141,7 +141,7 @@ function pb(expr::Expr, idx=Any[])
     return var, idx, from, to, tp, dims
 end
 
-function parse_pt(arg::Expr, consts, hyperparams, params, idx=-1, distvalue=None; loopvars=Dict())
+function parse_pt(arg::Expr, consts, hyperparams, params, idx=-1; loopvars=Dict())
 
     before = (length(consts), length(hyperparams), length(params))
 
@@ -208,7 +208,11 @@ function parse_pt(arg::Expr, consts, hyperparams, params, idx=-1, distvalue=None
     else
       if arg.head != :line
         println("parse_pt called with something not a line: ", arg.head)
-        #println(arg.args)
+        if arg.head == :block
+          # The first line of the block usually does nothing
+          consts, hyperparams, params = parse_pt(arg.args[2], consts, hyperparams, params, idx, loopvars=loopvars)
+        end
+          #println(arg.args)
       end
     end
 
