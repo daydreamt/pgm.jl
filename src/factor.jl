@@ -1,7 +1,8 @@
 # define the factor graph on top of a normal undirected graph
 
-#require("Graphs")
-using SimpleGraphs
+require("Graphs")
+using Graphs
+#using SimpleGraphs
 
 function getParents(g, vertex)
     res = Set()
