@@ -1,7 +1,8 @@
 # define the factor graph on top of a normal undirected graph
 
-require("Graphs")
-using Graphs
+#require("Graphs")
+using SimpleGraphs
+
 function getParents(g, vertex)
     res = Set()
     for edge in g.edges
@@ -52,7 +53,7 @@ end
 
 type FactorGraph
     Graph::GenericGraph{ExVertex,ExEdge{ExVertex},Array{ExVertex,1},Array{ExEdge{ExVertex},1},Array{Array{ExEdge{ExVertex},1},1}}
-    Variables #is a list of hashmaps: Each one contains the 
-    Factors #
-    
+    Variables #is a list of hashmaps: Each one contains the #Edit: ???
+    Factors #a mapping of node_id to {:nodes=>list_of_specific_order, :factor=>function(nodes)}
+
 end
