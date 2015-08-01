@@ -42,4 +42,24 @@ gmm = @model GaussianMixtureModel begin
     end
 end
 
-consts, hyperparams, params = gmm(d=2,n=2,K=2)
+t  = @model test begin
+    # constant declaration
+    @constant d::Int
+    @constant n::Int
+    @hyperparam K::Int
+
+    @param pi :: (0.0..1.0)^K
+
+    for i in 1 : K
+        @param mu[i] :: Float64^d
+        @param sig[i] :: Float64^(d, d)
+        z[i] ~ Categorical(pi)
+        x[i] ~ MultivariateNormal(mu[i], sig[i])
+    end
+
+end
+
+consts, hyperparams, params = t(d=2,n=2,K=5)
+println(consts)
+println(hyperparams)
+println(params)
