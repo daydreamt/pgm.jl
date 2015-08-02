@@ -13,11 +13,11 @@ using Base.Test
 @test pgm.pb((quote p[i] end)) == (:p, -1, :inf, :inf, nothing, (1,1))
 
 @test (pgm.parse_pt( (quote x[i] ~ MultivariateNormal(mu[z[i]], sig[z[i]]) end),  Dict(), Dict(), Dict(), 1, loopvars={:i=>3})) ==
-      (Dict{Any,Any}(),Dict{Any,Any}(),{:x=>Set{Any}({(:x,1,:inf,:inf,nothing,(1,1),(:MultivariateNormal,{:(mu[z[3]]),:(sig[z[3]])}))})})
+      (Dict{Any,Any}(),Dict{Any,Any}(),{:x=>Set{Any}({(:x,1,:inf,:inf,nothing,(1,1),(:MultivariateNormal,Any[:(mu[z[3]]),:(sig[z[3]])]))})})
 
 @test pgm.parse_pt(parse("@param sig[k]::Float64^(d,d) Symbol"), Dict(), Dict(), Dict(), 1) == (Dict{Any,Any}(),Dict{Any,Any}(), {:sig=>Set{Any}(Any[(:sig,1,:inf,:inf,Float64,(:d,:d), :unk)])})
 @test (pgm.parse_pt(parse("beta[i] ~ Categorical(2)"), Dict(), Dict(), Dict(), 1)) ==
-      (Dict{Any,Any}(),Dict{Any,Any}(),{:beta=>Set{Any}({(:beta,1,:inf,:inf,nothing,(1,1),(:Categorical,{2}))})})
+      (Dict{Any,Any}(),Dict{Any,Any}(),{:beta=>Set{Any}(Any[(:beta,1,:inf,:inf,nothing,(1,1),(:Categorical,{2}))])})
 
 ##########################################
 # Test some models
@@ -60,6 +60,3 @@ t  = @model test begin
 end
 
 consts, hyperparams, params = t(d=2,n=2,K=5)
-println(consts)
-println(hyperparams)
-println(params)
