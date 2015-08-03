@@ -59,4 +59,5 @@ t  = @model test begin
 
 end
 
-consts, hyperparams, params = t(d=2,n=2,K=5)
+params = gmm(d=2,n=2,K=5)
+println(keys(params))

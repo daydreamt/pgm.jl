@@ -285,6 +285,7 @@ macro model(name, rest...)
             end
           end
         end
+
         #Do the same for metaparameters (TODO: DRY) (TODO: merge sets or something with a merge(set1,set2) that works)
         for hp in $hyperparams # = (:name, {})
           if hp[1] in keys(paramdict)
@@ -344,7 +345,7 @@ macro model(name, rest...)
             end
         end
 
-        return $consts, $hyperparams, $params
+        return merge($consts, $hyperparams, $params)
 
     end # End inner constructor function
 

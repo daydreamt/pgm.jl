@@ -1,11 +1,10 @@
 using GraphViz
 
-function make_dot(params, hyperparams, consts, name)
-    u = merge(consts, params, hyperparams)
+function make_dot(params, name)
 
     s = string("digraph ", name, " {")
     # Take each variable by turn
-    for (varname, set) in u
+    for (varname, set) in params
         #println("Variable with name: ", varname)
         for var in set
             #println("index: ", var[2], " distribution and deps: ", var[7], typeof(var[7]))
@@ -30,6 +29,6 @@ function make_dot(params, hyperparams, consts, name)
     return s
 end
 
-function plot_graph(params, hyperparams, consts, name)
-    return Graph(make_dot(params, hyperparams, consts, name))
+function plot_graph(params, name)
+    return Graph(make_dot(params, name))
 end
