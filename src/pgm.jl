@@ -1,5 +1,5 @@
 module pgm
-require factor
+using factor
 
 include("distributions.jl")
 if (OS_NAME != :Windows)
