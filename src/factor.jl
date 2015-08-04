@@ -5,6 +5,8 @@ module factor
 using LightGraphs
 using GraphLayout
 
+export FactorGraph, mk_factor_graph
+
 # Probably not needed anymore, LightGraphs probably has those
 function getParents(g, vertex)
     res = Set()
