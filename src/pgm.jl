@@ -1,13 +1,13 @@
 module pgm
 
 include("distributions.jl")
-
 if (OS_NAME != :Windows)
-  include("visualisation.jl")
-  #export plot(model)
+  export plot_graph
 end
 
 export @model
+export save_svg #From visualisation
+
 
 function parse_from_to(expr)
     tp = nothing
