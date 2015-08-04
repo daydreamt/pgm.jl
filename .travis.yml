@@ -2,7 +2,3 @@ language: julia
 julia:
   - release
   - nightly
-before_install:
-  - make check-whitespace
-  - if [ `uname` = "Linux" ]; then
-		julia -e 'Pkg.add("LightGraphs")'
