@@ -1,9 +1,11 @@
 # define the factor graph on top of a normal undirected graph
 
-require("Graphs")
-using Graphs
-#using SimpleGraphs
+module factor
 
+using LightGraphs
+using GraphLayout
+
+# Probably not needed anymore, LightGraphs probably has those
 function getParents(g, vertex)
     res = Set()
     for edge in g.edges
@@ -26,35 +28,49 @@ function getChildren(g, vertex)
     return res
 end
 
-pairs = [(1,3), (2,3), (3,4), (3,5)]
-
-gd = graph(ExVertex[], ExEdge{ExVertex}[], is_directed=false)
-map((x) -> add_vertex!(gd, string(x)), 1:5)
-V = vertices(gd)
-map((edg) -> add_edge!(gd, V[edg[1]], V[edg[2]]), pairs)
-
-# GenericIncidenceList is best for the graph
-priority = topological_sort_by_dfs(gd)
-for vertex in priority
-    idx = vertex.index
-    # can now access in V[idx]
-end
-
-# So you just go through it topologically
-
-#eds = Edge{Int}[Edge(i,p[1],p[2]) for (i,p) in enumerate(pairs)]
-#gd = simple_edgelist(5, eds)
-
-#gd = simple_inclist(length(pairs))
-#for i = 1 : length(pairs)
-#    a = pairs[i]
-#    add_edge!(gd, a[1], a[2])   # add edge
-#end
-
+#use bfs_tree to traverse now
 
 type FactorGraph
-    Graph::GenericGraph{ExVertex,ExEdge{ExVertex},Array{ExVertex,1},Array{ExEdge{ExVertex},1},Array{Array{ExEdge{ExVertex},1},1}}
-    Variables #is a list of hashmaps: Each one contains the #Edit: ???
+    G::Graph # The data structure on which we are operating
+    Variables #is a list of hashmaps: Each one contains the mapping from variable name to node id
     Factors #a mapping of node_id to {:nodes=>list_of_specific_order, :factor=>function(nodes)}
+end
+
+# Given the params a model returns, build a factor graph
+# Bipartite graph, factors are nodes, variables are nodes
+function mk_factor_graph(params)
+  g = Graph()
+  lookup_map = Dict{String, Integer}()
+
+  # Take each variable by turn
+  for (varname, set) in params
+    for var in set
+
+      fullvarname = string(varname, "_",  var[2]) #the index
+
+      if !haskey(lookup_map, fullvarname)
+        lookup_map[fullvarname] = add_vertex!(g)
+      end
+
+      #TODO: Add every one of those to the factor. The factor from the rhs of a ~ expression is probably unique
+      # But what is the factor? Is
+      if !(typeof(var[7]) in [Symbol, Int64, Int]) #Maybe the whole factor at once?
+        #println("trying var", var[7], " with type ", typeof(var[7]))
+        for othervar in var[7][2]
+          ov = string(othervar)
+          if contains(ov, "[")
+            ov = replace(replace(ov, "[", "_"), "]", "")
+          end
+          if !haskey(lookup_map, ov)
+            lookup_map[ov] = add_vertex!(g)
+          end
+          add_edge!(g, lookup_map[ov], lookup_map[fullvarname])
+        end
+      end
+    end
+  end
+  return FactorGraph(g, lookup_map, {})
+end
+
 
 end

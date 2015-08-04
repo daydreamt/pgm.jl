@@ -1,5 +1,6 @@
 using pgm
 using Base.Test
+using factor
 
 ##########################################
 # Test internal functions
@@ -60,4 +61,5 @@ t  = @model test begin
 end
 
 params = gmm(d=2,n=2,K=5)
-println(keys(params))
+# Test the factor graph functions
+FG = factor.mk_factor_graph(params)

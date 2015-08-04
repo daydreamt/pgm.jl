@@ -1,4 +1,5 @@
 using GraphViz
+using GraphLayout
 
 function make_dot(params, name)
 
@@ -31,4 +32,10 @@ end
 
 function plot_graph(params, name)
     return Graph(make_dot(params, name))
+end
+
+function save_svg(g::FactorGraph, name)
+  am = full(adjacency_matrix(g.G))
+  loc_x, loc_y = layout_spring_adj(am)
+  draw_layout_adj(am, loc_x, loc_y, filename=name)
 end
