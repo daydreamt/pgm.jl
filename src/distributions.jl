@@ -6,6 +6,7 @@ import Distributions.rand
 type Domain
 	from::Int
 	to::Int
+  discrete::Bool
 end
 
 #Test

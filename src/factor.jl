@@ -40,6 +40,8 @@ end
 
 # Given the params a model returns, build a factor graph
 # Bipartite graph, factors are nodes, variables are nodes
+# This function expects a params returned from a model and then postprocessed so that
+#
 function mk_factor_graph(params)
   g = Graph()
   lookup_map = Dict{String, Integer}()
