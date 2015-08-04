@@ -1,6 +1,6 @@
 using pgm
 using Base.Test
-using factor
+require factor
 
 ##########################################
 # Test internal functions
