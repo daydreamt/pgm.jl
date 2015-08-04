@@ -1,5 +1,6 @@
 using GraphViz
 using GraphLayout
+using factor
 
 function make_dot(params, name)
 
