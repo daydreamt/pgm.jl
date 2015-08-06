@@ -279,7 +279,7 @@ macro model(name, rest...)
             for c in s
               # See if the current value is :constant instead of its value
               if c[7] == :const
-                c_updated = (c[1], c[2], c[3], c[4], c[5], c[6], v) #TODO
+                c_updated = (c[1], c[2], c[3], c[4], c[5], c[6], v)
                 delete!(cs[2], c)
                 push!(cs[2], c_updated)
               end
@@ -332,7 +332,6 @@ macro model(name, rest...)
                                         #println(l.head)
                                         #println(l.args)
                                         consts, hyperparams, params = parse_pt(l, $consts, $hyperparams, $params, k, loopvars={loopvar=>k})
-                                        #TODO: If type == bla ~ blu then ...
                                         #end
                                         println("------end-------")
                                     end
