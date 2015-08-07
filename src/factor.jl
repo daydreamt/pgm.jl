@@ -56,9 +56,7 @@ function mk_factor_graph(params)
         lookup_map[fullvarname] = add_vertex!(g)
       end
 
-      #TODO: Add every one of those to the factor. The factor from the rhs of a ~ expression is probably unique
-      # But what is the factor? Is
-      if !(typeof(var[7]) in [Symbol, Int64, Int]) #Maybe the whole factor at once?
+      if !(typeof(var[7]) in [Symbol, Int64, Int])
         #println("trying var", var[7], " with type ", typeof(var[7]))
         for othervar in var[7][2]
           ov = string(othervar)
@@ -73,6 +71,9 @@ function mk_factor_graph(params)
       end
     end
   end
+
+  dependency_graph = g
+  # Factors can be retrieved from the dependency_graph and from ???
   return FactorGraph(g, lookup_map, {})
 end
 
