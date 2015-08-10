@@ -38,7 +38,7 @@ gmm = @model GaussianMixtureModel begin
 
     # sample generation process
     for i in 1 : n
-        z[i] ~ Categorical(pi)
+        z[i] ~ Categorical(pi) # Obviously z1 and pi are a factor, z2 and pi another
         x[i] ~ MultivariateNormal(mu[z[i]], sig[z[i]])
     end
 end
@@ -63,3 +63,4 @@ end
 params = gmm(d=2,n=2,K=5)
 # Test the factor graph functions
 FG = factor.mk_factor_graph(params)
+println(FG.Variables) #mu_z_1 is wrong, x[i depends on both  mu[z[1]] (whole factor, probably) and sig[z[1]] (ditto)

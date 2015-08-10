@@ -3,6 +3,7 @@
 module factor
 
 using LightGraphs
+import Graphs # For the cliques #and connected_components
 using GraphLayout
 
 export FactorGraph, mk_factor_graph
@@ -73,7 +74,28 @@ function mk_factor_graph(params)
   end
 
   dependency_graph = g
-  # Factors can be retrieved from the dependency_graph and from ???
+
+  # Factors can be retrieved from the dependency_graph
+  # Factors are just cliques, right?
+  # Maybe they are connected components?
+  # Maybe subgraphs of some sort?
+
+  #so get the cliques, but build the Graphs graph first
+  s = Graphs.simple_graph(nv(g), is_directed=LightGraphs.is_directed(g))
+  for e in LightGraphs.edges(g)
+    Graphs.add_edge!(s,src(e), dst(e))
+  end
+  cliques = Graphs.maximal_cliques(s)
+
+  #Also the strongly connected components
+  components = Graphs.connected_components(s)
+
+  println(full(adjacency_matrix(g)))
+  println(" -----       Cliques              ------")
+  println(cliques)
+  println(" ----        Components            -----")
+  println(components)
+
   return FactorGraph(g, lookup_map, {})
 end
 
