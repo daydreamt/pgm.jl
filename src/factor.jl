@@ -4,6 +4,7 @@ module factor
 
 using LightGraphs
 import Graphs # For the cliques #and connected_components
+using Graphs.strongly_connected_components_recursive
 using GraphLayout
 
 export FactorGraph, mk_factor_graph
@@ -44,7 +45,7 @@ end
 # This function expects a params returned from a model and then postprocessed so that
 #
 function mk_factor_graph(params)
-  g = Graph()
+  g = LightGraphs.DiGraph()
   lookup_map = Dict{String, Integer}()
 
   # Take each variable by turn
@@ -62,7 +63,7 @@ function mk_factor_graph(params)
         for othervar in var[7][2]
           ov = string(othervar)
           if contains(ov, "[")
-            ov = replace(replace(ov, "[", "_"), "]", "")
+            ov = replace(replace(ov, "[", "_"), "]", "") #TODO: use parse_something
           end
           if !haskey(lookup_map, ov)
             lookup_map[ov] = add_vertex!(g)
@@ -75,6 +76,7 @@ function mk_factor_graph(params)
 
   dependency_graph = g
 
+  println("made the graph?")
   # Factors can be retrieved from the dependency_graph
   # Factors are just cliques, right?
   # Maybe they are connected components?
@@ -83,20 +85,24 @@ function mk_factor_graph(params)
   #so get the cliques, but build the Graphs graph first
   s = Graphs.simple_graph(nv(g), is_directed=LightGraphs.is_directed(g))
   for e in LightGraphs.edges(g)
-    Graphs.add_edge!(s,src(e), dst(e))
+    Graphs.add_edge!(s, src(e), dst(e))
   end
-  cliques = Graphs.maximal_cliques(s)
+
+  println(s)
+  #cliques = Graphs.maximal_cliques(s)
 
   #Also the strongly connected components
-  components = Graphs.connected_components(s)
+  #_c = strongly_connected_components_recursive(s)
 
+  println("And here?")
   println(full(adjacency_matrix(g)))
-  println(" -----       Cliques              ------")
-  println(cliques)
+  #println(" -----       Cliques              ------")
+  #println(cliques)
   println(" ----        Components            -----")
-  println(components)
+  #println(_c)
 
-  return FactorGraph(g, lookup_map, {})
+  s
+  #return FactorGraph(g, lookup_map, {})
 end
 
 

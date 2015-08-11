@@ -63,4 +63,6 @@ end
 params = gmm(d=2,n=2,K=5)
 # Test the factor graph functions
 FG = factor.mk_factor_graph(params)
+println(Graphs.strongly_connected_components_recursive(FG))
+Graphs.edges(FG)
 println(FG.Variables) #mu_z_1 is wrong, x[i depends on both  mu[z[1]] (whole factor, probably) and sig[z[1]] (ditto)
