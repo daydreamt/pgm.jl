@@ -66,7 +66,7 @@ function mk_factor_graph(params)
             ov = replace(replace(ov, "[", "_"), "]", "") #TODO: use parse_something
           end
           if !haskey(lookup_map, ov)
-            lookup_map[ov] = add_vertex!(g)
+            lookup_map[ov] = add_vertex!(g) #TODO: Change order, as that graph is temporary
           end
           add_edge!(g, lookup_map[ov], lookup_map[fullvarname])
         end
@@ -75,34 +75,51 @@ function mk_factor_graph(params)
   end
 
   dependency_graph = g
-
-  println("made the graph?")
-  # Factors can be retrieved from the dependency_graph
-  # Factors are just cliques, right?
-  # Maybe they are connected components?
-  # Maybe subgraphs of some sort?
-
-  #so get the cliques, but build the Graphs graph first
-  s = Graphs.simple_graph(nv(g), is_directed=LightGraphs.is_directed(g))
-  for e in LightGraphs.edges(g)
-    Graphs.add_edge!(s, src(e), dst(e))
+  if is_cyclic(dependency_graph)
+    error("Not implemented yet, please give DAGs")
   end
 
-  println(s)
-  #cliques = Graphs.maximal_cliques(s)
+  # Factors can be retrieved from the dependency_graph by noting that
+  # Every node can form a factor, if it has incoming nodes
+  ## (Explanation: If these incoming nodes do not have any dependencies then it is
+  ## clear, if they do then the dependency is a factor, but we will still add the
+  ## variable to the factor because that is how factor graphs work)
 
-  #Also the strongly connected components
-  #_c = strongly_connected_components_recursive(s)
+  #Uh oh, this complicates mapping from variables to nodes in the graphs though, I think. TODO:
+  new_lookup_map = Dict{String, Integer}() #TOODLES
+  old_graph_to_new = Dict{Int, Int}()
+  old_id_to_nodes = Dict{Int, Array{Int}}()
+  new_g = Graph()
+  ff = Dict{Int, Any}()
 
-  println("And here?")
-  println(full(adjacency_matrix(g)))
-  #println(" -----       Cliques              ------")
-  #println(cliques)
-  println(" ----        Components            -----")
-  #println(_c)
+  for v in vertices(dependency_graph)
+      # Nodes with a edge towards v
+      ns = filter(n->LightGraphs.Pair(n, v) in edges(dependency_graph), vertices(dependency_graph))
+      if length(ns) != 0
+        #Make a new factor
+        factor_id = add_vertex!(new_g)
+        # Add connections from all neighbours and v to it #TODO: Order is important
+        for n in [ns; v]
+          if !(n in keys(old_graph_to_new))
+              neighbour_id = add_vertex!(new_g)
+              old_graph_to_new[n] = neighbour_id
+              # Also to the auxilliary data structure
+              old_id_to_nodes[n] = Int[]
+          end
+          # The id of that node in the new graph
+          neighbour_id = old_graph_to_new[n]
 
-  s
-  #return FactorGraph(g, lookup_map, {})
+          add_edge!(new_g, neighbour_id, factor_id)
+          push!(old_id_to_nodes[n], factor_id)
+          ff[factor_id] = :FIXME_ORDER_OF_PARAMS
+        end
+      end
+  end
+
+  # println(" ----        Components            -----")
+  # println(weakly_connected_components(g))
+
+  return FactorGraph(new_g, lookup_map, ff)
 end
 
 
