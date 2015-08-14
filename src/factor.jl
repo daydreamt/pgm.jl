@@ -53,8 +53,7 @@ end
 type Factor
   Scope
   f #The function Scope -> R_+
-  Table # potentially in table form too
-  ?
+  Table # potentially in table form too?
   #dict, but Array might be ok too  #keys(var_to_idx) give variables
   var_to_idx #give position to internal location
   #Give position to function parameter
