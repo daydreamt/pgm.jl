@@ -4,6 +4,8 @@ using Distributions
 import Distributions.rand
 import Base.values
 
+export Domain, Variable, Factor, supported_distributions
+
 type Domain
 	from::Int
 	to::Int

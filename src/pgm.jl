@@ -1,7 +1,8 @@
 module pgm
 using factorgraph
+using factor
+using factor.supported_distributions
 
-include("factor.jl")
 if (OS_NAME != :Windows)
   export plot_graph
 end
