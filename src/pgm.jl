@@ -1,5 +1,5 @@
 module pgm
-using factor
+using factorgraph
 
 include("distributions.jl")
 if (OS_NAME != :Windows)
