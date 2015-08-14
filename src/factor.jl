@@ -1,126 +1,94 @@
-# define the factor graph on top of a normal undirected graph
-
 module factor
+#Factors, yo, they wrap too
+using Distributions
+import Distributions.rand
+import Base.values
 
-using LightGraphs
-import Graphs # For the cliques #and connected_components
-using Graphs.strongly_connected_components_recursive
-using GraphLayout
+type Domain
+	from::Int
+	to::Int
+  discrete::Bool
+  interval::Bool #Whether it contains every value from from to to
+  allvals #Set of all values. Probably redudant
 
-export FactorGraph, mk_factor_graph
+  Domain(from::Int, to::Int) = from > to ? error("invalid interval") : new(from, to, true, true, nothing)
+  Domain(vals::Set{Int}) = new(minimum(vals), maximum(vals), true, false, vals)
+  Domain(vals::Array{Int, 1}) = Domain(Set{Int}(vals))
 
-# Probably not needed anymore, LightGraphs probably has those
-function getParents(g, vertex)
-    res = Set()
-    for edge in g.edges
-        s = edge.source
-        t = edge.target
-        if (t.label == vertex) push!(res, s)
-        end
-    end
-    return res
 end
 
-function getChildren(g, vertex)
-    res = Set()
-    for edge in g.edges
-        s = edge.source
-        t = edge.target
-        if (s.label == vertex) push!(res, t)
-        end
+function rand(d::Domain)
+  res = nothing
+  if d.interval
+    if d.discrete
+      du = Distributions.DiscreteUniform(d.from, d.to)
+    else
+      du = Distributions.Uniform(d.from, d.to)
     end
-    return res
-end
-
-#use bfs_tree to traverse now
-
-type FactorGraph
-    G::Graph # The data structure on which we are operating
-    Variables #is a list of hashmaps: Each one contains the mapping from variable name to node id
-    Factors #a mapping of node_id to {:nodes=>list_of_specific_order, :factor=>function(nodes)}
-end
-
-# Given the params a model returns, build a factor graph
-# Bipartite graph, factors are nodes, variables are nodes
-# This function expects a params returned from a model and then postprocessed so that
-#
-function mk_factor_graph(params)
-  g = LightGraphs.DiGraph()
-  lookup_map = Dict{String, Integer}()
-
-  # Take each variable by turn
-  for (varname, set) in params
-    for var in set
-
-      fullvarname = string(varname, "_",  var[2]) #the index
-
-      if !haskey(lookup_map, fullvarname)
-        lookup_map[fullvarname] = add_vertex!(g)
-      end
-
-      if !(typeof(var[7]) in [Symbol, Int64, Int])
-        #println("trying var", var[7], " with type ", typeof(var[7]))
-        for othervar in var[7][2]
-          ov = string(othervar)
-          if contains(ov, "[")
-            ov = replace(replace(ov, "[", "_"), "]", "") #TODO: use parse_something
-          end
-          if !haskey(lookup_map, ov)
-            lookup_map[ov] = add_vertex!(g) #TODO: Change order, as that graph is temporary
-          end
-          add_edge!(g, lookup_map[ov], lookup_map[fullvarname])
-        end
-      end
-    end
+    res = rand(du)
+  else
+    res = sample(allvals)
   end
 
-  dependency_graph = g
-  if is_cyclic(dependency_graph)
-    error("Not implemented yet, please give DAGs")
-  end
-
-  # Factors can be retrieved from the dependency_graph by noting that
-  # Every node can form a factor, if it has incoming nodes
-  ## (Explanation: If these incoming nodes do not have any dependencies then it is
-  ## clear, if they do then the dependency is a factor, but we will still add the
-  ## variable to the factor because that is how factor graphs work)
-
-  #Uh oh, this complicates mapping from variables to nodes in the graphs though, I think. TODO:
-  new_lookup_map = Dict{String, Integer}() #TOODLES
-  old_graph_to_new = Dict{Int, Int}()
-  old_id_to_nodes = Dict{Int, Array{Int}}()
-  new_g = Graph()
-  ff = Dict{Int, Any}()
-
-  for v in vertices(dependency_graph)
-      # Nodes with a edge towards v
-      ns = filter(n->LightGraphs.Pair(n, v) in edges(dependency_graph), vertices(dependency_graph))
-      if length(ns) != 0
-        #Make a new factor
-        factor_id = add_vertex!(new_g)
-        # Add connections from all neighbours and v to it #TODO: Order is important
-        for n in [ns; v]
-          if !(n in keys(old_graph_to_new))
-              neighbour_id = add_vertex!(new_g)
-              old_graph_to_new[n] = neighbour_id
-              # Also to the auxilliary data structure
-              old_id_to_nodes[n] = Int[]
-          end
-          # The id of that node in the new graph
-          neighbour_id = old_graph_to_new[n]
-
-          add_edge!(new_g, neighbour_id, factor_id)
-          push!(old_id_to_nodes[n], factor_id)
-          ff[factor_id] = :FIXME_ORDER_OF_PARAMS
-        end
-      end
-  end
-
-  # println(" ----        Components            -----")
-  # println(weakly_connected_components(g))
-
-  return FactorGraph(new_g, lookup_map, ff)
+	return res
 end
+
+
+#Bad name: returns all possible values of a domain
+function values(d::Domain)
+    if d.allvals != nothing
+      return allvals
+    elseif d.discrete && d.interval
+      return range(d.from, d.to)
+    else
+      error("Bad domain specification.")
+    end
+end
+
+type Variable
+  name::String
+  d::Domain
+end
+
+type Factor
+  Scope
+  f #The function Scope -> R_+
+  Table # potentially in table form too
+  ?
+  #dict, but Array might be ok too  #keys(var_to_idx) give variables
+  var_to_idx #give position to internal location
+  #Give position to function parameter
+  var_to_fun_idx
+  #the function that gets values for the variables and returns a value
+
+end
+
+# Contingengy tables are factors too, they inherrit from factor
+# Operations that contingency tables support
+# should by supported by most factors too
+function contingency() #Could return a factor I think, subtyping not neccessary
+end
+
+
+
+#CPTs are arrays, really
+a = Array(Int64, 5,2,2,2)
+a[:,:,:,1] = 52
+a[:,:,:,2] = 53
+print(a)
+
+# What do I have to do with them?
+# Just pass them on to the factor function
+# So that it is a known one.
+
+
+println(Domain(2,5))
+println(Domain(Int[1,2,4,5]))
+
+
+supported_distributions = {:Categorical=>{:parameters=>1}, :MultivariateNormal=>{:parameters=>2}}
+
+# The other functions and the functionality of this module I must think about
 
 
 end
