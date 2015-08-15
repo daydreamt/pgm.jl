@@ -1,8 +1,11 @@
 module factor
-#Factors, yo, they wrap too
+#Factors, yo, they wrap distributions too
 using Distributions
 import Distributions.rand
 import Base.values
+import Base.isequal
+import Base.==
+
 
 export Domain, Variable, Factor, supported_distributions
 
@@ -12,12 +15,25 @@ type Domain
   discrete::Bool
   interval::Bool #Whether it contains every value from from to to
   allvals #Set of all values. Probably redudant
-
+  #TODO: This is 1d. to agree with pgm.pb, maybe more dimensions
   Domain(from::Int, to::Int) = from > to ? error("invalid interval") : new(from, to, true, true, nothing)
-  Domain(vals::Set{Int}) = new(minimum(vals), maximum(vals), true, false, vals)
+  Domain(vals::Set{Int}) = new(minimum(vals), maximum(vals), true, vals == Set(range(minimum(vals), maximum(vals) - 1)), vals)
   Domain(vals::Array{Int, 1}) = Domain(Set{Int}(vals))
+  Domain(from::Int, to::Int, d::Bool, i::Bool, allvals) = new(from, to, d, i, allvals)
 
 end
+
+
+function ==(d1::Domain, d2::Domain)
+  d1.from == d2.from && d1.to == d2.to && d1.discrete == d2.discrete && d1.interval == d2.interval && ((d1.interval && d1.discrete) || d1.allvals == d2.allvals)
+end
+
+function isequal(d1::Domain, d2::Domain)
+  isequal(d1.from, d2.from) && isequal(d1.to, d2.to) && isequal(d1.discrete, d2.discrete) &&
+  isequal(d1.interval, d2.interval) && ((d1.interval && d1.discrete) || isequal(d1.allvals, d2.allvals))
+end
+
+
 
 function rand(d::Domain)
   res = nothing
@@ -76,16 +92,11 @@ end
 a = Array(Int64, 5,2,2,2)
 a[:,:,:,1] = 52
 a[:,:,:,2] = 53
-print(a)
+#print(a)
 
 # What do I have to do with them?
 # Just pass them on to the factor function
 # So that it is a known one.
-
-
-println(Domain(2,5))
-println(Domain(Int[1,2,4,5]))
-
 
 supported_distributions = {:Categorical=>{:parameters=>1}, :MultivariateNormal=>{:parameters=>2}}
 

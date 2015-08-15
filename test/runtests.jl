@@ -1,4 +1,4 @@
-tests = ["pgm_test"]
+tests = ["factor_test", "pgm_test"]
 
 for t in tests
     fpath = "$t.jl"
