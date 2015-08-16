@@ -69,15 +69,46 @@ type Variable
 end
 
 type Factor
-  Scope
-  f #The function Scope -> R_+
-  Table # potentially in table form too?
+  Scope # Variables, in a strict order
+  Table # We have discrete variables, let's try that.
+
+  # Experimental, TODO test ignore
+  f #The function Scope -> R_+,
+  #Very Experimental
+  # Should f return things for partially initialized functions?
+  # How should its parameters be?
+
   #dict, but Array might be ok too  #keys(var_to_idx) give variables
-  var_to_idx #give position to internal location
+  #var_to_idx #give position to internal location
+
   #Give position to function parameter
-  var_to_fun_idx
+  #var_to_fun_idx
   #the function that gets values for the variables and returns a value
 
+  # A single table
+  function Factor(table::Array{Int64,1})
+    l = length(table);
+    if ((l & (l - 1)) != 0)
+      error("Please give a table of length power of two")
+    else
+      new([range(0, int(log2(l)))], table, nothing)
+    end
+  end
+
+  #Named variables
+  function Factor(Vars::Array{ASCIIString, 1}, table::Array{Int64,1})
+    fct = Factor(table)
+    assert(length(Vars) == length(fct.Scope))
+    fct.Scope = Vars
+    return fct
+  end
+
+  #Full constructor
+  Factor(scope, table,f) = new(scope, table, f)
+end
+
+function ==(f1::Factor, f2::Factor)
+  f1.Scope == f2.Scope && f1.Table == f2.Table && f1.f == f2.f
 end
 
 # Contingengy tables are factors too, they inherrit from factor
