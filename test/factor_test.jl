@@ -13,16 +13,21 @@ d2 = Domain(2,5,true,true,nothing)
 
 
 #Variables
-v1 = Variable("A", Domain(0,1))
+v1 = Variable("X", Domain(0,1))
+v2 = Variable("Y", Domain(1,2))
 
 # Multiple ways to define Factors
 fct1 = Factor([2,52,52,2])
 @test fct1 == Factor([0,1], [2,52,52,2],nothing) #Disagreement more likely factor with two variables (4 = 2^2)
 
+fct2 = Factor(Variable[v1,v2], [2,52,52,2])
+
 fct1.Scope = ["X","Y"]
-@test fct1 == Factor(["X","Y"],[2,52,52,2])
+fct3 = Factor(["X","Y"],[2,52,52,2])
+@test fct1 == fct2 == fct3
 
 Factor([2, 50, 50, 50, 50, 50, 50, 2]) #And with three
+
 
 #=
 function f(;x=0,y=0)

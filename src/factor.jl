@@ -103,6 +103,29 @@ type Factor
     return fct
   end
 
+  #From variables with finite domains
+  #TODO: What happens with the order of the given factors here?
+  function Factor(Vars::Array{Variable, 1}, table::Array{Int64,1})
+    names = map(x -> x.name, Vars)
+
+    #Assert the given configurations are equal to all possible configurations
+    total_domains = 0
+    for var in Vars
+        if (!var.d.discrete || !var.d.interval)
+          error("Sorry, discrete interval variables only for now")
+        end
+        total_domains += var.d.to - var.d.from + 1
+    end
+
+    if length(table) != total_domains
+        error("Bad table given")
+    end
+
+    # Finally, make a factor with that
+    return Factor(names, table)
+
+  end
+
   #Full constructor
   Factor(scope, table,f) = new(scope, table, f)
 end
