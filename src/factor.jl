@@ -134,6 +134,16 @@ function ==(f1::Factor, f2::Factor)
   f1.Scope == f2.Scope && f1.Table == f2.Table && f1.f == f2.f
 end
 
+# Given an array of variables, and a function that for every configuration
+# of them returns a value generate a factor
+function generate_factor(vars::Array{Variable}, f)
+  assert(length(Variable) == f.env.max_args)
+  #How do I pass the parameters to the function one by one?
+  # I am now restricted to functions taking one large tuple or named parameters.
+  #TODO
+
+
+end
 # Contingengy tables are factors too, they inherrit from factor
 # Operations that contingency tables support
 # should by supported by most factors too
