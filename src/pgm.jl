@@ -1,7 +1,5 @@
 module pgm
 
-using Iterators.product
-
 #This would be a prime candidate for decoupling
 include("factor.jl")
 export Domain, Variable, Factor, supported_distributions

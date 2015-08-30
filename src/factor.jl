@@ -4,6 +4,8 @@ import Distributions.rand
 import Base.values
 import Base.isequal
 import Base.==
+using Iterators
+import Iterators.product
 
 export Domain, Variable, Factor, supported_distributions, generate_factor
 
@@ -55,7 +57,7 @@ function values(d::Domain)
     if d.allvals != nothing
       return allvals
     elseif d.discrete && d.interval
-      return range(d.from, d.to)
+      return d.from:d.to
     else
       error("Bad domain specification.")
     end
@@ -136,16 +138,15 @@ end
 
 # Given an array of variables, and a function that for every configuration
 # of them returns a value generate a factor
-#TODO: apply(product, list) does not work as intended
 function generate_factor(vars::Array{Variable, 1}, f)
   assert(length(vars) == f.env.max_args)
   #for tuple in possible configurations
-  for tuple in apply(product, (map(x->values(x.d), vars)))
-    #Uhm, apply(product, list) does not work as intended.
-    print(tuple)
-    #apply(tuple, f)
+  res = Int[]
+  for tuple in apply(product, (map(x->tuple(values(x.d)...), vars)))
+    push!(res, apply(f, tuple))
   end
 
+  return Factor(vars, res)
 end
 # Contingengy tables are factors too, they inherrit from factor
 # Operations that contingency tables support

@@ -23,23 +23,16 @@ fct2 = Factor(Variable[v1,v2], [2,52,52,2])
 
 fct1.Scope = ["X","Y"]
 fct3 = Factor(["X","Y"],[2,52,52,2])
-@test fct1 == fct2 == fct3
+
+function f(x, y)
+  return ((x==1 && y==1) || (x== 0 && y == 2)) * 50 + 2
+end
+fct4 = generate_factor([v1,v2], f)
+
+@test fct1 == fct2 == fct3 == fct4
 
 Factor([2, 50, 50, 50, 50, 50, 50, 2]) #And with three
 
-function f(a,b)
-  return a+b
-end
 
-generate_factor([v1,v2], f)
+#f(x=2,y=2) #Named parameters not done yet.
 
-
-#=
-function f(;x=0,y=0)
-  return (x==y) * 50 + 2
-end
-
-Variable("X",Domain(0,1))
-Variable("Y",Domain(0,1))
-f(x=2,y=2)
-=#
