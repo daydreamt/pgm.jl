@@ -5,7 +5,7 @@ import Base.values
 import Base.isequal
 import Base.==
 
-export Domain, Variable, Factor, supported_distributions
+export Domain, Variable, Factor, supported_distributions, generate_factor
 
 type Domain
 	from::Int
@@ -65,6 +65,8 @@ type Variable
   name::String
   d::Domain
 end
+
+
 
 type Factor
   Scope # Variables, in a strict order
@@ -134,12 +136,15 @@ end
 
 # Given an array of variables, and a function that for every configuration
 # of them returns a value generate a factor
-function generate_factor(vars::Array{Variable}, f)
-  assert(length(Variable) == f.env.max_args)
-  #How do I pass the parameters to the function one by one?
-  # I am now restricted to functions taking one large tuple or named parameters.
-  #TODO
-
+#TODO: apply(product, list) does not work as intended
+function generate_factor(vars::Array{Variable, 1}, f)
+  assert(length(vars) == f.env.max_args)
+  #for tuple in possible configurations
+  for tuple in apply(product, (map(x->values(x.d), vars)))
+    #Uhm, apply(product, list) does not work as intended.
+    print(tuple)
+    #apply(tuple, f)
+  end
 
 end
 # Contingengy tables are factors too, they inherrit from factor

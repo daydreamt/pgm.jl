@@ -1,17 +1,25 @@
 How would you write a factor type?
 
 For discrete Factors, I something like that would be enough
+```julia
 type Factor
 	Scope::Array{String}
 	Table # of length 2^length(Scope) when binary variables etc
 end
+```
+
  where scopes gives the names and the values for combinations are then in increasing order for each configuration.
 
 For other functions (with real valued or infinite domains etc), I guess you could give a function that returns a value for all variable configurations.
+```julia
 type Factor
 	Scope::Array{Variables} # Where variables have a domain field
 	factor::(Variables_in_some_form -> R)
 end
+```
+
+Can I make them both from an abstract type?
+
 
 However, for that the signature of the factor function should be decided on.
 

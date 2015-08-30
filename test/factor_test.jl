@@ -27,6 +27,11 @@ fct3 = Factor(["X","Y"],[2,52,52,2])
 
 Factor([2, 50, 50, 50, 50, 50, 50, 2]) #And with three
 
+function f(a,b)
+  return a+b
+end
+
+generate_factor([v1,v2], f)
 
 
 #=
