@@ -7,6 +7,7 @@ using LightGraphs
 import Graphs # For the cliques #and connected_components
 using Graphs.strongly_connected_components_recursive
 using GraphLayout
+using factor
 
 export FactorGraph, mk_factor_graph
 
@@ -39,12 +40,45 @@ type FactorGraph
     G::Graph # The data structure on which we are operating
     Variables #is a list of hashmaps: Each one contains the mapping from variable name to node id
     Factors #a mapping of node_id to {:nodes=>list_of_specific_order, :factor=>function(nodes)}
+    Product::Bool
+
+  # Make factorgraph the boring way, from an array of factors :-)
+  function FactorGraph(factors::Array{Factor,1}, sum=false)
+    # Get all variables
+    vars = reduce(union, map(x->x.Scope, factors))
+    # Make a graph, and add the factors as nodes first
+    G = LightGraphs.Graph()
+    Factors = Dict()
+    Variables = Dict()
+
+    fct2id = Dict() #temporary
+    # Add factors
+    for f in factors
+      vertex_id = add_vertex!(G)
+      Factors[vertex_id] = {:nodes=>Int[], :factor=>f} #TODO: Maybe only the factor function? Depends on their specification
+      fct2id[f] = vertex_id
+    end
+    # Add variables, and variables to factors
+    for f in factors
+      for var in f.Scope
+        # Add variable if it doesn't exist
+        if !(haskey(Variables, var))
+          var_id = add_vertex!(G)
+          Variables[var] = var_id
+        end
+        var_id = Variables[var]
+        # Add factor mapping
+        push!(Factors[fct2id[f]][:nodes], var_id)
+      end
+    end
+    return new(G, Variables, Factors, !sum)
+  end
+
 end
 
 # Given the params a model returns, build a factor graph
 # Bipartite graph, factors are nodes, variables are nodes
 # This function expects a params returned from a model and then postprocessed so that
-#
 function mk_factor_graph(params)
   g = LightGraphs.DiGraph()
   lookup_map = Dict{String, Integer}()
@@ -120,7 +154,7 @@ function mk_factor_graph(params)
   # println(" ----        Components            -----")
   # println(weakly_connected_components(g))
 
-  return FactorGraph(new_g, lookup_map, ff)
+  return FactorGraph(new_g, lookup_map, ff, true)
 end
 
 
