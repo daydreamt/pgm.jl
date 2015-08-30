@@ -5,6 +5,7 @@ using LightGraphs
 import Graphs # For the cliques #and connected_components
 using Graphs.strongly_connected_components_recursive
 using GraphLayout
+
 export FactorGraph, mk_factor_graph
 
 # Probably not needed anymore, LightGraphs probably has those
