@@ -26,3 +26,10 @@ Three candidates:
 
 I think I am going with the third.
 
+The ideal case for me would be to use the third form everywhere I want to, and for the
+users making factor graphs maybe a convenience function could be made:
+
+It takes a function f(a,b,c...) that takes the parameters in a strict order,
+returns a function f(a=0,b=0,c=0,...) that takes keyword arguments.
+
+I currently do not know how to write that function.
