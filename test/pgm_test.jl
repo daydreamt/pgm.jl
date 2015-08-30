@@ -1,4 +1,5 @@
 using Base.Test
+using pgm
 ##########################################
 # Test internal functions
 ##########################################
@@ -59,7 +60,7 @@ end
 
 params = gmm(d=2,n=2,K=5)
 # Test the factor graph functions
-FG = factorgraph.mk_factor_graph(params)
+FG = mk_factor_graph(params)
 println(FG.G)
 println(LightGraphs.edges(FG.G))
 println(FG.Variables) #mu_z_1 is wrong, x[i depends on both  mu[z[1]] (whole factor, probably) and sig[z[1]] (ditto)

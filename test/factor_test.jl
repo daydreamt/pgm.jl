@@ -1,5 +1,5 @@
 using Base.Test
-
+using pgm
 # Domains
 d1 = Domain(2,5)
 d2 = Domain(2,5,true,true,nothing)
