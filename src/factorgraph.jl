@@ -1,14 +1,10 @@
 # define the factor graph on top of a normal undirected graph
 # The compiler functions are currently in here
 
-module factorgraph
-
 using LightGraphs
 import Graphs # For the cliques #and connected_components
 using Graphs.strongly_connected_components_recursive
 using GraphLayout
-using factor
-
 export FactorGraph, mk_factor_graph
 
 # Probably not needed anymore, LightGraphs probably has those
@@ -158,4 +154,3 @@ function mk_factor_graph(params)
 end
 
 
-end

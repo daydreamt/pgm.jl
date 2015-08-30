@@ -1,7 +1,4 @@
-using pgm
 using Base.Test
-using factorgraph
-using factor.supported_distributions
 ##########################################
 # Test internal functions
 ##########################################

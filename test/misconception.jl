@@ -1,7 +1,5 @@
 #From Koller and Friedman, 2009, Probabilistic graphical models: principles and techniques
 
-using factor
-using factorgraph
 f1 = Factor(["a","b"], [30, 5, 1, 5])
 f2 = Factor(["b","c"], [100, 1, 1, 100])
 f3 = Factor(["c","d"], [1, 100, 100, 1])

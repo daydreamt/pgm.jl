@@ -1,11 +1,9 @@
-module factor
 #Factors, yo, they wrap distributions too
 using Distributions
 import Distributions.rand
 import Base.values
 import Base.isequal
 import Base.==
-
 
 export Domain, Variable, Factor, supported_distributions
 
@@ -165,6 +163,3 @@ a[:,:,:,2] = 53
 supported_distributions = {:Categorical=>{:parameters=>1}, :MultivariateNormal=>{:parameters=>2}}
 
 # The other functions and the functionality of this module I must think about
-
-
-end

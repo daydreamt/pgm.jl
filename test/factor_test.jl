@@ -1,5 +1,4 @@
 using Base.Test
-using factor
 
 # Domains
 d1 = Domain(2,5)
@@ -27,6 +26,7 @@ fct3 = Factor(["X","Y"],[2,52,52,2])
 @test fct1 == fct2 == fct3
 
 Factor([2, 50, 50, 50, 50, 50, 50, 2]) #And with three
+
 
 
 #=
