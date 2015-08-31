@@ -1,9 +1,18 @@
-#Factors, yo, they wrap distributions too
+#=
+This file contains a factor graph library for pgm.jl
+It could/would/should be swapped with a more efficient C++/GPU one in the
+future for inference and training purposes but for now it will do.
+
+The Distributions module we will wrap (for the DSL) should be converted to
+factors too. We will wrap them here.
+=#
+
 using Distributions
 import Distributions.rand
 import Base.values
 import Base.isequal
 import Base.==
+import Base.length
 using Iterators
 import Iterators.product
 
@@ -23,16 +32,20 @@ type Domain
 
 end
 
+function length(d::Domain)
+  return 1 + d.to - d.from
+end
+
 
 function ==(d1::Domain, d2::Domain)
   d1.from == d2.from && d1.to == d2.to && d1.discrete == d2.discrete && d1.interval == d2.interval && ((d1.interval && d1.discrete) || d1.allvals == d2.allvals)
 end
 
+
 function isequal(d1::Domain, d2::Domain)
   isequal(d1.from, d2.from) && isequal(d1.to, d2.to) && isequal(d1.discrete, d2.discrete) &&
   isequal(d1.interval, d2.interval) && ((d1.interval && d1.discrete) || isequal(d1.allvals, d2.allvals))
 end
-
 
 
 function rand(d::Domain)
@@ -63,42 +76,78 @@ function values(d::Domain)
     end
 end
 
+
 type Variable
   name::String
   d::Domain
 end
 
 
-
 type Factor
-  Scope # Variables, in a strict order
+  Scope::Array{Variable, 1} # Variables, in a strict order
+  f #function that maps:  Scope -> R (or N, have not decided yet)
+  Factor(scope, f) = new(scope, f)
+end
+
+
+type DiscreteFactor #:< Factor #Hm... should I just make a discrete factor?
+  Scope::Array{Variable, 1} # Variables, in a strict order
   Table # We have discrete variables, let's try that.
+  f # We can make the f function from the table!
+  #Full constructor
+  DiscreteFactor(scope, table,f) = new(scope, table, f)
 
-  # Experimental, TODO test ignore
-  f #The function Scope -> R_+,
-  #Very Experimental
-  # Should f return things for partially initialized functions?
-  # How should its parameters be?
+  function DiscreteFactor(scope::Array{Variable, 1}, table)
+    @assert length(table) == reduce(+, map(var->length(var.d), scope))
+    #We only need to make the function f now that maps variable instances to a table index
 
-  #dict, but Array might be ok too  #keys(var_to_idx) give variables
-  #var_to_idx #give position to internal location
+    # Map the variable with value val and idx var_idx to its position in the table
+    function find_idx(var_idx, val)
+      for (res_idx, other_val) in enumerate(values(Variable[var_idx].d))
+        if other_val == val
+          return res
+        end
+      end
+      error("variable not in there")
+    end
 
-  #Give position to function parameter
-  #var_to_fun_idx
-  #the function that gets values for the variables and returns a value
+    #For variable in variables
+    # reduce(+ , map(find_idx, _VARIABLES_OF_FUNCTION_PROGRAMMATICALY_))
 
+    function f(xs...)
+      @assert length(scope) == length(xs)
+      # Now every parameter in xs is in the same position as in array
+      # Find its index for its given value in its domain
+      idxes = Int[]
+      for (var_idx, val) in enumerate(xs)
+        push!(idxes, find_idx(var_idx, val))
+      end
+      println(idxes)
+
+      final_idx = reduce(+, idxes)
+      println(final_idx)
+
+      return final_idx
+    end
+
+    new(scope, table, f) #Or only f ;-)
+  end
+end
+
+
+#=
   # A single table
-  function Factor(table::Array{Int64,1})
+  function DiscreteFactor(table::Array{Int64,1})
     l = length(table);
     if ((l & (l - 1)) != 0)
-      error("Please give a table of length power of two")
+      error("Please give a table of length power of two") #Power of two is only good for all variables binary...
     else
       new([range(0, int(log2(l)))], table, nothing)
     end
   end
 
   #Named variables
-  function Factor(Vars::Array{ASCIIString, 1}, table::Array{Int64,1})
+  function DiscreteFactor(Vars::Array{ASCIIString, 1}, table::Array{Int64,1})
     fct = Factor(table)
     assert(length(Vars) == length(fct.Scope))
     fct.Scope = Vars
@@ -107,7 +156,7 @@ type Factor
 
   #From variables with finite domains
   #TODO: What happens with the order of the given factors here?
-  function Factor(Vars::Array{Variable, 1}, table::Array{Int64,1})
+  function DiscreteFactor(Vars::Array{Variable, 1}, table::Array{Int64,1})
     names = map(x -> x.name, Vars)
 
     #Assert the given configurations are equal to all possible configurations
@@ -124,17 +173,19 @@ type Factor
     end
 
     # Finally, make a factor with that
-    return Factor(names, table)
+    return DiscreteFactor(names, table)
 
   end
-
-  #Full constructor
-  Factor(scope, table,f) = new(scope, table, f)
-end
+=#
 
 function ==(f1::Factor, f2::Factor)
+  f1.Scope == f2.Scope  && f1.f == f2.f
+end
+
+function ==(f1::DiscreteFactor, f2::DiscreteFactor)
   f1.Scope == f2.Scope && f1.Table == f2.Table && f1.f == f2.f
 end
+
 
 # Given an array of variables, and a function that for every configuration
 # of them returns a value generate a factor
@@ -146,8 +197,11 @@ function generate_factor(vars::Array{Variable, 1}, f)
     push!(res, apply(f, tuple))
   end
 
-  return Factor(vars, res)
+  return DiscreteFactor(vars, res)
 end
+
+
+#=
 # Contingengy tables are factors too, they inherrit from factor
 # Operations that contingency tables support
 # should by supported by most factors too
@@ -155,12 +209,10 @@ function contingency() #Could return a factor I think, subtyping not neccessary
 end
 
 
-
 #CPTs are arrays, really
 a = Array(Int64, 5,2,2,2)
 a[:,:,:,1] = 52
 a[:,:,:,2] = 53
-#print(a)
 
 # What do I have to do with them?
 # Just pass them on to the factor function
@@ -169,3 +221,4 @@ a[:,:,:,2] = 53
 supported_distributions = {:Categorical=>{:parameters=>1}, :MultivariateNormal=>{:parameters=>2}}
 
 # The other functions and the functionality of this module I must think about
+=#
