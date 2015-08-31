@@ -16,33 +16,24 @@ The manipulation of products and automatic merging of factors might be tricky in
 
 For discrete Factors, I something like that would be enough and probably more suitable.
 ```julia
-type Factor
+type DiscreteFactor
 	Scope::Array{Variables, 1}
 	Table # of length == reduce(+, map(var->length(var.d), scope)
 end
 ```
 
- where scopes gives the names and the values for combinations are then in increasing order for each configuration.
-
-
-
 Can I make them both from an abstract type?
 
 
-However, for that the signature of the factor function should be decided on.
 
-Three candidates:
+
+For the signature of the factor function, I am going with
 ```julia
-
-
-              f((a,b)) #Ugly, easy to implement with f(params)
-              f(a=1,b=2,...) #Good for smaller graphs, cumbersome and meaningless for large generated graphs. Didn't I use that in @model?
               f(a,b) # I prefer that, ooh, look, apply(f,params)
 ```
 
-I think I am going with the third.
 
-The ideal case for me would be to use the third form everywhere I want to, and for the
+The ideal case for me would be to use this form everywhere I want to, and for the
 users making factor graphs maybe a convenience function could be made:
 
 It takes a function f(a,b,c...) that takes the parameters in a strict order,

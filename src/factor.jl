@@ -82,6 +82,8 @@ type Variable
   d::Domain
 end
 
+# How can I give this type the Scope and f subfields?
+abstract AbstractFactor
 
 type Factor
   Scope::Array{Variable, 1} # Variables, in a strict order
@@ -217,8 +219,8 @@ a[:,:,:,2] = 53
 # What do I have to do with them?
 # Just pass them on to the factor function
 # So that it is a known one.
+=#
 
 supported_distributions = {:Categorical=>{:parameters=>1}, :MultivariateNormal=>{:parameters=>2}}
 
 # The other functions and the functionality of this module I must think about
-=#
