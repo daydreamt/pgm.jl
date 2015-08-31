@@ -134,23 +134,20 @@ type DiscreteFactor #:< Factor #Hm... should I just make a discrete factor?
 
     new(scope, table, f) #Or only f ;-)
   end
-end
 
-
-#=
-  # A single table
+    # A single table
   function DiscreteFactor(table::Array{Int64,1})
     l = length(table);
     if ((l & (l - 1)) != 0)
       error("Please give a table of length power of two") #Power of two is only good for all variables binary...
     else
-      new([range(0, int(log2(l)))], table, nothing)
+      DiscreteFactor([range(0, int(log2(l)))], table)
     end
   end
 
   #Named variables
   function DiscreteFactor(Vars::Array{ASCIIString, 1}, table::Array{Int64,1})
-    fct = Factor(table)
+    fct = DiscreteFactor(table)
     assert(length(Vars) == length(fct.Scope))
     fct.Scope = Vars
     return fct
@@ -178,7 +175,8 @@ end
     return DiscreteFactor(names, table)
 
   end
-=#
+end
+
 
 function ==(f1::Factor, f2::Factor)
   f1.Scope == f2.Scope  && f1.f == f2.f
@@ -203,6 +201,8 @@ function generate_factor(vars::Array{Variable, 1}, f)
 end
 
 
+
+supported_distributions = {:Categorical=>{:parameters=>1}, :MultivariateNormal=>{:parameters=>2}}
 #=
 # Contingengy tables are factors too, they inherrit from factor
 # Operations that contingency tables support
@@ -220,7 +220,5 @@ a[:,:,:,2] = 53
 # Just pass them on to the factor function
 # So that it is a known one.
 =#
-
-supported_distributions = {:Categorical=>{:parameters=>1}, :MultivariateNormal=>{:parameters=>2}}
 
 # The other functions and the functionality of this module I must think about

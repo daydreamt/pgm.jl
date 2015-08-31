@@ -15,16 +15,18 @@ d2 = Domain(2,5,true,true,nothing)
 v1 = Variable("X", Domain(0,1))
 v2 = Variable("Y", Domain(1,2))
 
+
 #=
 # Multiple ways to define Factors
-fct1 = Factor([2,52,52,2])
-@test fct1 == Factor([0,1], [2,52,52,2],nothing) #Disagreement more likely factor with two variables (4 = 2^2)
+fct1 = DiscreteFactor([2,52,52,2])
+@test fct1 == DiscreteFactor([0,1], [2,52,52,2],nothing)
+#Disagreement more likely factor with two variables (4 = 2^2)
 
 
 fct2 = DiscreteFactor(Variable[v1,v2], [2,52,52,2])
 
 fct1.Scope = ["X","Y"]
-fct3 = Factor(["X","Y"],[2,52,52,2])
+fct3 = DiscreteFactor(["X","Y"],[2,52,52,2])
 
 function f(x, y)
   return ((x==1 && y==1) || (x== 0 && y == 2)) * 50 + 2
@@ -33,7 +35,7 @@ fct4 = generate_factor([v1,v2], f)
 
 @test fct1 == fct2 == fct3 == fct4
 
-Factor([2, 50, 50, 50, 50, 50, 50, 2]) #And with three
+DiscreFactor([2, 50, 50, 50, 50, 50, 50, 2]) #And with three
 =#
 
 #f(x=2,y=2) #Named parameters not done yet.
