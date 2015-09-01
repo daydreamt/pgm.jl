@@ -30,30 +30,23 @@ fct2 = DiscreteFactor(Variable[v1,v2], [2,52,52,2])
 
 v3 = Variable("X", Domain(3,4))
 v4 = Variable("Y", Domain(5,6))
-fct3 = DiscreteFactor(Variable[v3,v4], [100,-100,-100,100])
-@test fct3.f(3,5) == 100
-@test fct3.f(3,6) == -100
-@test fct3.f(4,5) == -100
-@test fct3.f(4,6) == 100
+fct0 = DiscreteFactor(Variable[v3,v4], [100,-100,-100,100])
+@test fct0.f(3,5) == 100
+@test fct0.f(3,6) == -100
+@test fct0.f(4,5) == -100
+@test fct0.f(4,6) == 100
 
-#=
+f1 = DiscreteFactor(["a","b"], [30, 5, 1, 5])
+
 fct1 = DiscreteFactor([2,52,52,2])
-
-@test fct1 == DiscreteFactor([0,1], [2,52,52,2],nothing)
 #Disagreement more likely factor with two variables (4 = 2^2)
-
-
-
-fct1.Scope = ["X","Y"]
 fct3 = DiscreteFactor(["X","Y"],[2,52,52,2])
 fct4 = generate_factor([v1,v2], f)
+#And with three variables
+DiscreteFactor([2, 50, 50, 50, 50, 50, 50, 2])
 
-
-
-@test fct1 == fct2 == fct3 == fct4
-
-DiscreFactor([2, 50, 50, 50, 50, 50, 50, 2]) #And with three
-=#
-
+#FIXME: Equality not completely working
+#@test fct1 == DiscreteFactor([0,1], [2,52,52,2])
+#@test fct1 == fct2 == fct3 == fct4
 #f(x=2,y=2) #Named parameters not done yet.
 
