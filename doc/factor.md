@@ -2,11 +2,11 @@ How would you write a factor type?
 
 
 
-For all functions (either with discrete, or even with real valued or infinite domains etc), I guess you could give a function that returns a value for all variable configurations.
+For all functions (either with discrete, or even with real valued or infinite domains etc), I guess you could give a function f that returns a value for all variable configurations.
 ```julia
 type Factor
 	Scope::Array{Variables, 1} # Where variables must have a domain field
-	factor::(Variables_in_some_form -> R)
+	f::(Variables_in_some_form -> R)
 end
 ```
 
@@ -22,8 +22,18 @@ type DiscreteFactor
 end
 ```
 
-Can I make them both from an abstract type?
+In practice, it has a factor function too.
 
+```julia
+type DiscreteFactor
+	Scope::Array{Variables, 1}
+	Table # of length == reduce(+, map(var->length(var.d), scope)
+	f::(Variables_in_some_form -> R)
+
+end
+```
+
+Both are subtypes of the AbstractFactor type.
 
 
 

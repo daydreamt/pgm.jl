@@ -40,7 +40,7 @@ type FactorGraph
     Product::Bool
 
   # Make factorgraph the boring way, from an array of factors :-)
-  function FactorGraph(factors::Array{Factor,1}, sum=false)
+  function FactorGraph{Fct<:AbstractFactor}(factors::Array{Fct,1}, sum=false::Bool)
     # Get all variables
     vars = reduce(union, map(x->x.Scope, factors))
     # Make a graph, and add the factors as nodes first

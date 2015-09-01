@@ -1,7 +1,6 @@
 tests = ["factor_test", "pgm_test"]
 
-#examples = ["misconception"]
-examples = []
+examples = ["misconception"]
 
 for t in tests
     fpath = "$t.jl"

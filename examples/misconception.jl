@@ -1,14 +1,14 @@
 #From Koller and Friedman, 2009, Probabilistic graphical models: principles and techniques
 
-f1 = Factor(["a","b"], [30, 5, 1, 5])
-f2 = Factor(["b","c"], [100, 1, 1, 100])
-f3 = Factor(["c","d"], [1, 100, 100, 1])
-f4 = Factor(["d", "a"], [100, 1, 1, 100])
+f1 = DiscreteFactor(["a","b"], [30, 5, 1, 5])
+f2 = DiscreteFactor(["b","c"], [100, 1, 1, 100])
+f3 = DiscreteFactor(["c","d"], [1, 100, 100, 1])
+f4 = DiscreteFactor(["d", "a"], [100, 1, 1, 100])
 
 union(f4.Scope,f1.Scope)
 reduce(union, map(x->x.Scope, [f1,f2,f3,f4]))
 
-fg = FactorGraph([f1,f2,f3,f4],false)
+fg = FactorGraph([f1,f2,f3,f4], false)
 fg.Variables
 
 fg.Factors

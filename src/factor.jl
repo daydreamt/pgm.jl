@@ -76,23 +76,26 @@ function values(d::Domain)
     end
 end
 
-
 type Variable
   name::String
   d::Domain
+  Variable(n::String, d::Domain) = new(n,d)
+  Variable(n::String) = new(n, Domain(0,1)) #Binary
+  Variable(n::Int) = new(string(n), Domain(0,1)) #Binary
 end
 
 # How can ensure all factors have a Scope and f subfields?
+# I don't think I can, but they should be!
 abstract AbstractFactor
 
-type Factor
+type Factor <: AbstractFactor
   Scope::Array{Variable, 1} # Variables, in a strict order
   f #function that maps:  Scope -> R (or N, have not decided yet)
   Factor(scope, f) = new(scope, f)
 end
 
 
-type DiscreteFactor #:< Factor #Hm... should I just make a discrete factor?
+type DiscreteFactor <: AbstractFactor
   Scope::Array{Variable, 1} # Variables, in a strict order
   Table # We have discrete variables, let's try that.
   f # We can make the f function from the table!
@@ -100,13 +103,12 @@ type DiscreteFactor #:< Factor #Hm... should I just make a discrete factor?
   DiscreteFactor(scope, table,f) = new(scope, table, f)
 
   function DiscreteFactor(scope::Array{Variable, 1}, table::Array{Int64,1})
-    @assert length(table) == reduce(+, map(var->length(var.d), scope))
+    @assert length(table) == reduce(*, map(var->length(var.d), scope))
     #We only need to make the function f now that maps variable instances to a table index
 
     # Map the variable with value val and idx var_idx to its position in the table
     function find_idx(var_idx, val)
       for (res_idx, other_val) in enumerate(values(scope[var_idx].d))
-        println(other_val, val)
         if other_val == val
           return res_idx
         end
@@ -143,56 +145,39 @@ type DiscreteFactor #:< Factor #Hm... should I just make a discrete factor?
     new(scope, table, f) #Or only f ;-)
   end
 
-    # A single table
+  #--------------------------
+  # Convenience constructors
+  # -------------------------
+  # A single table
   function DiscreteFactor(table::Array{Int64,1})
     l = length(table);
     if ((l & (l - 1)) != 0)
       error("Please give a table of length power of two") #TODO: Power of two is only good for all variables binary...
     else
-      DiscreteFactor([range(0, int(log2(l)))], table)
+      # Now we assume all variables are binary
+
+      DiscreteFactor([Variable(string(char(x))) for x in 65:(65+int(log2(l))-1)], table)
     end
   end
 
-  #Named variables
-  function DiscreteFactor(Vars::Array{ASCIIString, 1}, table::Array{Int64,1})
+  #Strings make binary variables that are binary
+  function DiscreteFactor(vars::Array{ASCIIString, 1}, table::Array{Int64,1})
     fct = DiscreteFactor(table)
-    assert(length(Vars) == length(fct.Scope))
-    fct.Scope = Vars
+    assert(length(vars) == length(fct.Scope))
+    fct.Scope = map(Variable, vars)
     return fct
   end
 
-  #From variables with finite domains
-  #TODO: What happens with the order of the given factors here?
-  #=
-  function DiscreteFactor(Vars::Array{Variable, 1}, table::Array{Int64,1})
-    names = map(x -> x.name, Vars)
-
-    #Assert the given configurations are equal to all possible configurations
-    total_domains = 0
-    for var in Vars
-        if (!var.d.discrete || !var.d.interval)
-          error("Sorry, discrete interval variables only for now")
-        end
-        total_domains += var.d.to - var.d.from + 1
-    end
-
-    if length(table) != total_domains
-        error("Bad table given")
-    end
-
-    # Finally, make a factor with that
-    return DiscreteFactor(names, table)
-  end
-  =#
 end
 
 
+# You can only prove they are equivalent
 function ==(f1::Factor, f2::Factor)
   f1.Scope == f2.Scope  && f1.f == f2.f
 end
 
 function ==(f1::DiscreteFactor, f2::DiscreteFactor)
-  f1.Scope == f2.Scope && f1.Table == f2.Table && f1.f == f2.f
+  f1.Scope == f2.Scope && f1.Table == f2.Table
 end
 
 
@@ -210,7 +195,9 @@ function generate_factor(vars::Array{Variable, 1}, f)
 end
 
 
-
+############################################
+# Part 2: Mapping of distribution to factors
+############################################
 supported_distributions = {:Categorical=>{:parameters=>1}, :MultivariateNormal=>{:parameters=>2}}
 
 
