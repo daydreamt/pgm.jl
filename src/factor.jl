@@ -100,7 +100,8 @@ type DiscreteFactor <: AbstractFactor
   Table # We have discrete variables, let's try that.
   f # We can make the f function from the table!
   #Full constructor
-  DiscreteFactor(scope, table,f) = new(scope, table, f)
+  DiscreteFactor(scope::Array{Variable, 1}, f) = new(scope, None, f)
+  DiscreteFactor(scope::Array{Variable, 1}, table,f) = new(scope, table, f)
 
   function DiscreteFactor(scope::Array{Variable, 1}, table::Array{Int64,1})
     @assert length(table) == reduce(*, map(var->length(var.d), scope))
@@ -170,7 +171,6 @@ type DiscreteFactor <: AbstractFactor
 
 end
 
-
 # You can only prove they are equivalent
 function ==(f1::Factor, f2::Factor)
   f1.Scope == f2.Scope  && f1.f == f2.f
@@ -180,9 +180,9 @@ function ==(f1::DiscreteFactor, f2::DiscreteFactor)
   f1.Scope == f2.Scope && f1.Table == f2.Table
 end
 
-
 # Given an array of variables, and a function that for every configuration
 # of them returns a value generate a factor
+# This is probably useless now
 function generate_factor(vars::Array{Variable, 1}, f)
   assert(length(vars) == f.env.max_args)
   #for tuple in possible configurations
@@ -194,6 +194,37 @@ function generate_factor(vars::Array{Variable, 1}, f)
   return DiscreteFactor(vars, res)
 end
 
+function compute_Z_brute_force(fct::DiscreteFactor)
+  vars = fct.Scope
+  Z = 0
+  for tuple in apply(product, (map(x->tuple(values(x.d)...), vars)))
+    Z += apply(fct.f, tuple)
+  end
+  return Z
+end
+
+function normalize(fct::DiscreteFactor)
+  vars = fct.Scope
+  Z = 0
+  min_val = 0
+
+  # Compute minimum and normalization factor
+  for tuple in apply(product, (map(x->tuple(values(x.d)...), vars)))
+    val = apply(fct.f, tuple)
+    Z += val
+    min_val = min(min_val, val)
+  end
+
+  offset = 0
+  if min_val < 0 then
+    offset = -1 * min_val
+  end
+
+  function fnew(xs...)
+    return (apply(fct.f, (xs)) + offset) / (Z + length(vars) * offset)
+  end
+  return DiscreteFactor(vars, fnew)
+end
 
 ############################################
 # Part 2: Mapping of distribution to factors

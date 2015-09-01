@@ -35,15 +35,22 @@ fct0 = DiscreteFactor(Variable[v3,v4], [100,-100,-100,100])
 @test fct0.f(3,6) == -100
 @test fct0.f(4,5) == -100
 @test fct0.f(4,6) == 100
+@test compute_Z_brute_force(fct0) == 0
 
 f1 = DiscreteFactor(["a","b"], [30, 5, 1, 5])
 
 fct1 = DiscreteFactor([2,52,52,2])
+@test compute_Z_brute_force(fct1) == 108
+fct1n = normalize(fct1)
+@test fct1n.f(0,0) == fct1n.f(1,1) == 2/ 108
+@test fct1n.f(0,1) == fct1n.f(1,0) == 52 /108
+
 #Disagreement more likely factor with two variables (4 = 2^2)
 fct3 = DiscreteFactor(["X","Y"],[2,52,52,2])
 fct4 = generate_factor([v1,v2], f)
 #And with three variables
 DiscreteFactor([2, 50, 50, 50, 50, 50, 50, 2])
+
 
 #FIXME: Equality not completely working
 #@test fct1 == DiscreteFactor([0,1], [2,52,52,2])
