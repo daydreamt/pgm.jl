@@ -82,7 +82,7 @@ type Variable
   d::Domain
 end
 
-# How can I give this type the Scope and f subfields?
+# How can ensure all factors have a Scope and f subfields?
 abstract AbstractFactor
 
 type Factor
@@ -99,15 +99,16 @@ type DiscreteFactor #:< Factor #Hm... should I just make a discrete factor?
   #Full constructor
   DiscreteFactor(scope, table,f) = new(scope, table, f)
 
-  function DiscreteFactor(scope::Array{Variable, 1}, table)
+  function DiscreteFactor(scope::Array{Variable, 1}, table::Array{Int64,1})
     @assert length(table) == reduce(+, map(var->length(var.d), scope))
     #We only need to make the function f now that maps variable instances to a table index
 
     # Map the variable with value val and idx var_idx to its position in the table
     function find_idx(var_idx, val)
-      for (res_idx, other_val) in enumerate(values(Variable[var_idx].d))
+      for (res_idx, other_val) in enumerate(values(scope[var_idx].d))
+        println(other_val, val)
         if other_val == val
-          return res
+          return res_idx
         end
       end
       error("variable not in there")
@@ -124,12 +125,19 @@ type DiscreteFactor #:< Factor #Hm... should I just make a discrete factor?
       for (var_idx, val) in enumerate(xs)
         push!(idxes, find_idx(var_idx, val))
       end
-      println(idxes)
 
-      final_idx = reduce(+, idxes)
-      println(final_idx)
+      final_idx = 0
+      i = length(xs)
+      weight = 1
+      while(i>=1)
+        final_idx += (idxes[i] - 1) * weight
+        weight = length(scope[i].d) * weight
+        i-=1
+      end
 
-      return final_idx
+      final_idx += 1 #Start from 1 in julia
+
+      return table[final_idx]
     end
 
     new(scope, table, f) #Or only f ;-)
@@ -139,7 +147,7 @@ type DiscreteFactor #:< Factor #Hm... should I just make a discrete factor?
   function DiscreteFactor(table::Array{Int64,1})
     l = length(table);
     if ((l & (l - 1)) != 0)
-      error("Please give a table of length power of two") #Power of two is only good for all variables binary...
+      error("Please give a table of length power of two") #TODO: Power of two is only good for all variables binary...
     else
       DiscreteFactor([range(0, int(log2(l)))], table)
     end
@@ -155,6 +163,7 @@ type DiscreteFactor #:< Factor #Hm... should I just make a discrete factor?
 
   #From variables with finite domains
   #TODO: What happens with the order of the given factors here?
+  #=
   function DiscreteFactor(Vars::Array{Variable, 1}, table::Array{Int64,1})
     names = map(x -> x.name, Vars)
 
@@ -173,8 +182,8 @@ type DiscreteFactor #:< Factor #Hm... should I just make a discrete factor?
 
     # Finally, make a factor with that
     return DiscreteFactor(names, table)
-
   end
+  =#
 end
 
 
@@ -203,7 +212,9 @@ end
 
 
 supported_distributions = {:Categorical=>{:parameters=>1}, :MultivariateNormal=>{:parameters=>2}}
-#=
+
+
+
 # Contingengy tables are factors too, they inherrit from factor
 # Operations that contingency tables support
 # should by supported by most factors too
@@ -219,6 +230,6 @@ a[:,:,:,2] = 53
 # What do I have to do with them?
 # Just pass them on to the factor function
 # So that it is a known one.
-=#
+
 
 # The other functions and the functionality of this module I must think about
