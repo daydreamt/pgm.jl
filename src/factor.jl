@@ -12,13 +12,12 @@ import Distributions.rand
 import Base.values
 import Base.isequal
 import Base.==
+import Base.hash
 import Base.length
 import Base.intersect
 
 using Iterators
 import Iterators.product
-
-export Domain, Variable, Factor, supported_distributions, generate_factor
 
 type Domain
 	from::Int

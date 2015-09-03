@@ -37,9 +37,12 @@ v4 = Variable("Y", Domain(5,6))
 v5 = Variable("X", Domain(0,1))
 
 @test v1 == v5
-
+@test isequal(v1,v5)
+@test hash(v1) == hash(v5)
 @test v1 in intersect( Variable[v1,v2], Variable[v3,v4,v5])
+
 @test symdiff(Variable[v1,v2], Variable[v3,v4,v5]) == Variable[v2,v3,v4]
+symdiff(Variable[v1,v2], Variable[v3,v4,v5])
 
 fct0 = DiscreteFactor(Variable[v3,v4], [100,-100,-100,100])
 @test v3 in fct0.Scope

@@ -36,8 +36,12 @@ function factor_product(fct1::Factor, fct2::Factor)
   V1 = fct1.Scope
   V2 = fct2.Scope
 
-  C = intersect(fct1.Scope, fct2.Scope)
+  Y = intersect(V1, V2)
+  X = setdiff(V1, Y)
+  Z = setdiff(V2, Y)
   #TODO
+  # Now there are two approaches possible
+  # i) For finite factors you can precompute every value, make a table, have a function return one of those
+  # ii) Or, you can return a function here that does the work at runtime.
 
 end
-
