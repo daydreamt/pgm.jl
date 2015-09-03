@@ -43,5 +43,11 @@ function factor_product(fct1::Factor, fct2::Factor)
   # Now there are two approaches possible
   # i) For finite factors you can precompute every value, make a table, have a function return one of those
   # ii) Or, you can return a function here that does the work at runtime.
-
+  # I think I am going with ii) for the time being.
+  # function ff(ys...)
+  #   #The expected parameters
+  #   @assert length(Y) == length(ys)
+  #   return sum_out(fct1.f, Y, ys) * sum_out(fct2.f, Z, ys)
+  # end
+  # return Factor(Y, ff)
 end
