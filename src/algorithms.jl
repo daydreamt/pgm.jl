@@ -31,6 +31,14 @@ function normalize(fct::DiscreteFactor)
   return DiscreteFactor(vars, fnew)
 end
 
+# Return a reduced factor
+function reduced_factor(fct::Factor, newvars::Array{Variables, 1})
+  # Get summed out variables
+  summed_out = setdiff(fct.Scope, Y)
+  # For ... in ...
+  #TODO: Implement
+end
+
 function factor_product(fct1::Factor, fct2::Factor)
 
   V1 = fct1.Scope
