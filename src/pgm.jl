@@ -2,9 +2,10 @@ module pgm
 
 #This would be a prime candidate for decoupling
 include("factor.jl")
-# Representation
+# Representation of factors
 export Domain, Variable, AbstractFactor, Factor, DiscreteFactor
 # Algorithms
+include("algorithms.jl")
 export compute_Z_brute_force, normalize
 # Wrapped distributions
 export supported_distributions

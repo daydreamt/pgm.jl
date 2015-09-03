@@ -13,6 +13,8 @@ import Base.values
 import Base.isequal
 import Base.==
 import Base.length
+import Base.intersect
+
 using Iterators
 import Iterators.product
 
@@ -41,12 +43,14 @@ function ==(d1::Domain, d2::Domain)
   d1.from == d2.from && d1.to == d2.to && d1.discrete == d2.discrete && d1.interval == d2.interval && ((d1.interval && d1.discrete) || d1.allvals == d2.allvals)
 end
 
-
 function isequal(d1::Domain, d2::Domain)
   isequal(d1.from, d2.from) && isequal(d1.to, d2.to) && isequal(d1.discrete, d2.discrete) &&
   isequal(d1.interval, d2.interval) && ((d1.interval && d1.discrete) || isequal(d1.allvals, d2.allvals))
 end
 
+function hash(d1::Domain)
+  return hash(d1.from, hash(d1.to, hash(d1.discrete, hash(d1.interval, hash(d1.allvals)))))
+end
 
 function rand(d::Domain)
   res = nothing
@@ -64,7 +68,6 @@ function rand(d::Domain)
 	return res
 end
 
-
 #Bad name: returns all possible values of a domain
 function values(d::Domain)
     if d.allvals != nothing
@@ -76,6 +79,8 @@ function values(d::Domain)
     end
 end
 
+# Should I identify variables by some sort of id instead?
+# http://stackoverflow.com/a/24546757
 type Variable
   name::String
   d::Domain
@@ -83,6 +88,30 @@ type Variable
   Variable(n::String) = new(n, Domain(0,1)) #Binary
   Variable(n::Int) = new(string(n), Domain(0,1)) #Binary
 end
+
+
+function ==(v1::Variable, v2::Variable)
+  return v1.name == v2.name && v1.d == v2.d
+end
+
+function isequal(v1::Variable, v2::Variable)
+  return v1.name == v2.name && v1.d == v2.d
+end
+
+function hash(v1::Variable)
+  return hash(v1.name, hash(v1.d))
+end
+
+# Do I need that, or does it work out of the box?
+#function intersect(v1s::Array{Variable, 1}, v2s::Array{Variable, 2})
+#  res = Variable[]
+#  for var in v1s
+#    if var in v2s
+#      push!(var, res)
+#    end
+#  end
+#  return res
+#end
 
 # How can ensure all factors have a Scope and f subfields?
 # I don't think I can, but they should be!
@@ -192,38 +221,6 @@ function generate_factor(vars::Array{Variable, 1}, f)
   end
 
   return DiscreteFactor(vars, res)
-end
-
-function compute_Z_brute_force(fct::DiscreteFactor)
-  vars = fct.Scope
-  Z = 0
-  for tuple in apply(product, (map(x->tuple(values(x.d)...), vars)))
-    Z += apply(fct.f, tuple)
-  end
-  return Z
-end
-
-function normalize(fct::DiscreteFactor)
-  vars = fct.Scope
-  Z = 0
-  min_val = 0
-
-  # Compute minimum and normalization factor
-  for tuple in apply(product, (map(x->tuple(values(x.d)...), vars)))
-    val = apply(fct.f, tuple)
-    Z += val
-    min_val = min(min_val, val)
-  end
-
-  offset = 0
-  if min_val < 0 then
-    offset = -1 * min_val
-  end
-
-  function fnew(xs...)
-    return (apply(fct.f, (xs)) + offset) / (Z + length(vars) * offset)
-  end
-  return DiscreteFactor(vars, fnew)
 end
 
 ############################################

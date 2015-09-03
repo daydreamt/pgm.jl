@@ -15,6 +15,10 @@ d2 = Domain(2,5,true,true,nothing)
 v1 = Variable("X", Domain(0,1))
 v2 = Variable("Y", Domain(1,2))
 
+v1eq = Variable("X")
+
+@test v1 == v1eq
+@test v2 == Variable("Y", Domain(1,2))
 
 # Multiple ways to define Factors
 
@@ -30,12 +34,23 @@ fct2 = DiscreteFactor(Variable[v1,v2], [2,52,52,2])
 
 v3 = Variable("X", Domain(3,4))
 v4 = Variable("Y", Domain(5,6))
+v5 = Variable("X", Domain(0,1))
+
+@test v1 == v5
+
+@test v1 in intersect( Variable[v1,v2], Variable[v3,v4,v5])
+@test symdiff(Variable[v1,v2], Variable[v3,v4,v5]) == Variable[v2,v3,v4]
+
 fct0 = DiscreteFactor(Variable[v3,v4], [100,-100,-100,100])
+@test v3 in fct0.Scope
+@test v4 in fct0.Scope
+
 @test fct0.f(3,5) == 100
 @test fct0.f(3,6) == -100
 @test fct0.f(4,5) == -100
 @test fct0.f(4,6) == 100
 @test compute_Z_brute_force(fct0) == 0
+
 
 f1 = DiscreteFactor(["a","b"], [30, 5, 1, 5])
 
