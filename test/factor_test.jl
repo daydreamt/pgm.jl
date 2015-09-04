@@ -22,7 +22,7 @@ v1eq = Variable("X")
 
 # Multiple ways to define Factors
 
-function f(x, y)
+function ff(x, y)
   return ((x==1 && y==1) || (x== 0 && y == 2)) * 50 + 2
 end
 fct2 = DiscreteFactor(Variable[v1,v2], [2,52,52,2])
@@ -65,13 +65,15 @@ fct1n = normalize(fct1)
 
 #Disagreement more likely factor with two variables (4 = 2^2)
 fct3 = DiscreteFactor(["X","Y"],[2,52,52,2])
-fct4 = generate_factor([v1,v2], f)
+fct4 = generate_factor([v1,v2], ff)
 #And with three variables
-DiscreteFactor([2, 50, 50, 50, 50, 50, 50, 2])
+fct5 = DiscreteFactor([2, 50, 50, 50, 50, 50, 50, 2])
+fct5.Scope[2:3]
+fct5_reduced = reduce_factor(fct5, fct5.Scope[2:3])
 
+@test fct5_reduced.Scope == fct5.Scope[2:3]
 
 #FIXME: Equality not completely working
 #@test fct1 == DiscreteFactor([0,1], [2,52,52,2])
 #@test fct1 == fct2 == fct3 == fct4
 #f(x=2,y=2) #Named parameters not done yet.
-

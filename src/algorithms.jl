@@ -1,5 +1,5 @@
 # Some algorithms operating on factors
-function compute_Z_brute_force(fct::DiscreteFactor)
+function compute_Z_brute_force(fct::AbstractFactor)
   vars = fct.Scope
   Z = 0
   for tuple in apply(product, (map(x->tuple(values(x.d)...), vars)))
@@ -8,7 +8,7 @@ function compute_Z_brute_force(fct::DiscreteFactor)
   return Z
 end
 
-function normalize(fct::DiscreteFactor)
+function normalize(fct::AbstractFactor)
   vars = fct.Scope
   Z = 0
   min_val = 0
@@ -28,21 +28,28 @@ function normalize(fct::DiscreteFactor)
   function fnew(xs...)
     return (apply(fct.f, (xs)) + offset) / (Z + length(vars) * offset)
   end
-  return DiscreteFactor(vars, fnew)
+  return Factor(vars, fnew)
 end
 
 # Return a reduced factor
-function reduced_factor(fct::Factor, newvars::Array{Variable, 1})
+function reduce_factor(fct::AbstractFactor, newvars::Array{Variable, 1})
   fullvars = fct.Scope
   # Get summed out variables
-  summed_out = setdiff(fullvars, Y)
-  # Get their indexes
-  idxes = Int[]
+  summed_out = setdiff(fullvars, newvars)
+  # and their indexes
+  summed_out_idxes = Int[]
+  # As well as the idxes from the new variables
+  new_var_idxes = Int[]
+
   for (idx, v) in enumerate(fullvars)
     if v in summed_out
-      push!(idxes, idx)
+      push!(summed_out_idxes, idx)
+    else
+      @assert v in newvars # Potentially slow, n^2 slow
+      push!(new_var_idxes, idx)
     end
   end
+  @assert issorted(new_var_idxes)
 
   if length(newvars) == length(fullvars)
     return fct
@@ -50,24 +57,33 @@ function reduced_factor(fct::Factor, newvars::Array{Variable, 1})
     # The returned factor function gets only the newvars as arguments
     function f(newxs...)
       @assert length(newxs) == length(newvars)
+
+      array_that_will_be_tuple = zeros(Int, length(fullvars))
+      # Initialize the newxs only once in the array
+      for (idx, var) in enumerate(newxs)
+        array_that_will_be_tuple[new_var_idxes[idx]] = var
+      end
+
+      # And
       res = 0
 
       # enumerate the summed out variables
-      for tuple in apply(product, (map(x->tuple(values(x.d)...), summed_out)))
-        println(tuple)
-        # Get them in their correct order
-        this_will_be_a_tuple = []
-        cur_idx = 1 # On the idxes array
-        #for (idx, t) in enumerate(tuple)
-        #  while
+      for t in apply(product, (map(x->tuple(values(x.d)...), summed_out)))
+
+        for (idx, newvar) in enumerate(t)
+          array_that_will_be_tuple[summed_out_idxes[idx]] = newvar
+        end
+        # apply the old factor and sum
+        res += apply(fct.f, apply(tuple, array_that_will_be_tuple))
       end
-      # apply the old factor and sum
+      return res
     end
+    return Factor(newvars, f)
   end
 
 end
 
-function factor_product(fct1::Factor, fct2::Factor)
+function factor_product(fct1::AbstractFactor, fct2::AbstractFactor)
 
   V1 = fct1.Scope
   V2 = fct2.Scope
@@ -75,15 +91,20 @@ function factor_product(fct1::Factor, fct2::Factor)
   Y = intersect(V1, V2)
   X = setdiff(V1, Y)
   Z = setdiff(V2, Y)
-  #TODO
+
   # Now there are two approaches possible
   # i) For finite factors you can precompute every value, make a table, have a function return one of those
   # ii) Or, you can return a function here that does the work at runtime.
-  # I think I am going with ii) for the time being.
-  # function ff(ys...)
-  #   #The expected parameters
-  #   @assert length(Y) == length(ys)
-  #   return sum_out(fct1.f, Y, ys) * sum_out(fct2.f, Z, ys)
-  # end
-  # return Factor(Y, ff)
+  # We are going with ii) for the time being.
+
+  function ff(ys...)
+     #The expected parameters
+     @assert length(Y) == length(ys)
+     r1 = reduce_factor(fct1, X)
+     r2 = reduce_factor(fct2, Z)
+
+    return r1.f(ys) * r2.f(ys)
+  end
+
+  return Factor(Y, ff)
 end
