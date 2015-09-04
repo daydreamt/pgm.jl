@@ -32,11 +32,39 @@ function normalize(fct::DiscreteFactor)
 end
 
 # Return a reduced factor
-function reduced_factor(fct::Factor, newvars::Array{Variables, 1})
+function reduced_factor(fct::Factor, newvars::Array{Variable, 1})
+  fullvars = fct.Scope
   # Get summed out variables
-  summed_out = setdiff(fct.Scope, Y)
-  # For ... in ...
-  #TODO: Implement
+  summed_out = setdiff(fullvars, Y)
+  # Get their indexes
+  idxes = Int[]
+  for (idx, v) in enumerate(fullvars)
+    if v in summed_out
+      push!(idxes, idx)
+    end
+  end
+
+  if length(newvars) == length(fullvars)
+    return fct
+  else
+    # The returned factor function gets only the newvars as arguments
+    function f(newxs...)
+      @assert length(newxs) == length(newvars)
+      res = 0
+
+      # enumerate the summed out variables
+      for tuple in apply(product, (map(x->tuple(values(x.d)...), summed_out)))
+        println(tuple)
+        # Get them in their correct order
+        this_will_be_a_tuple = []
+        cur_idx = 1 # On the idxes array
+        #for (idx, t) in enumerate(tuple)
+        #  while
+      end
+      # apply the old factor and sum
+    end
+  end
+
 end
 
 function factor_product(fct1::Factor, fct2::Factor)
