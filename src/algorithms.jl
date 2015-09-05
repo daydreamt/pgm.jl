@@ -83,6 +83,7 @@ function reduce_factor(fct::AbstractFactor, newvars::Array{Variable, 1})
 
 end
 
+# Wait is that correct? Why no union?
 function factor_product(fct1::AbstractFactor, fct2::AbstractFactor)
 
   V1 = fct1.Scope
@@ -100,8 +101,8 @@ function factor_product(fct1::AbstractFactor, fct2::AbstractFactor)
   function ff(ys...)
      #The expected parameters
      @assert length(Y) == length(ys)
-     r1 = reduce_factor(fct1, X)
-     r2 = reduce_factor(fct2, Z)
+     r1 = reduce_factor(fct1, Y)
+     r2 = reduce_factor(fct2, Y)
 
     return r1.f(ys) * r2.f(ys)
   end
