@@ -109,3 +109,26 @@ function factor_product(fct1::AbstractFactor, fct2::AbstractFactor)
 
   return Factor(Y, ff)
 end
+
+# Belief propagation needs the following functions
+# 1) an ordering of nodes of the factorgraph         []
+# 2) its reverse!                                    [x]
+# 3) Know whether a node is a factor or a Variable   [x]
+# 3.5 Get all variables from a factor                []
+# 4. Get all neighbouring factors from a variable    []
+# 4) Variable-to-factor message                      []
+# 5) Factor-to-variable message                      []
+# 6) Why only two iterations?                        []
+
+function get_ordering(g::Graph)
+  return topological_sort_by_dfs(g)
+end
+
+# reverse() gets the reverse ordering
+function is_variable(fg::FactorGraph, n::Int)
+  return !haskey(fg.Factors, n)
+end
+
+function is_factor(fg::FactorGraph, n::Int)
+  return haskey(fg.Factors, n)
+end
