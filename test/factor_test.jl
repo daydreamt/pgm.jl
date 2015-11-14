@@ -1,5 +1,7 @@
 using Base.Test
 using pgm
+import pgm.normalize
+
 # Domains
 d1 = Domain(2,5)
 d2 = Domain(2,5,true,true,nothing)
@@ -59,7 +61,7 @@ f1 = DiscreteFactor(["a","b"], [30, 5, 1, 5])
 
 fct1 = DiscreteFactor([2,52,52,2])
 @test compute_Z_brute_force(fct1) == 108
-fct1n = normalize(fct1)
+fct1n = pgm.normalize(fct1)
 @test fct1n.f(0,0) == fct1n.f(1,1) == 2/ 108
 @test fct1n.f(0,1) == fct1n.f(1,0) == 52 /108
 
