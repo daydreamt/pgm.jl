@@ -52,7 +52,7 @@ type FactorGraph
     # Add factors
     for f in factors
       vertex_id = add_vertex!(G)
-      Factors[vertex_id] = {:nodes=>Int[], :factor=>f} #TODO: Maybe only the factor function? Depends on their specification
+      Factors[vertex_id] = Dict{Any,Any}(:nodes=>Int[], :factor=>f) #TODO: Maybe only the factor function? Depends on their specification
       fct2id[f] = vertex_id
     end
     # Add variables, and variables to factors

@@ -3,32 +3,33 @@ function compute_Z_brute_force(fct::AbstractFactor)
   vars = fct.Scope
   Z = 0
   for tuple in apply(product, (map(x->tuple(values(x.d)...), vars)))
-    Z += apply(fct.f, tuple)
+    Z += fct.f(tuple...) #apply(fct.f, tuple)
   end
   return Z
 end
 
 function normalize(fct::AbstractFactor)
-  vars = fct.Scope
-  Z = 0
-  min_val = 0
+    vars = fct.Scope
+    Z = 0
+    min_val = 0
 
-  # Compute minimum and normalization factor
-  for tuple in apply(product, (map(x->tuple(values(x.d)...), vars)))
-    val = apply(fct.f, tuple)
-    Z += val
-    min_val = min(min_val, val)
-  end
+    # Compute minimum and normalization factor
+    for tuple in apply(product, (map(x->tuple(values(x.d)...), vars)))
+        val = fct.f(tuple...) #apply(fct.f, tuple)
+        Z += val
+        min_val = min(min_val, val)
+    end
+    
+    offset = 0
+    if min_val < 0 then
+        offset = -1 * min_val
+    end
 
-  offset = 0
-  if min_val < 0 then
-    offset = -1 * min_val
-  end
-
-  function fnew(xs...)
-    return (apply(fct.f, (xs)) + offset) / (Z + length(vars) * offset)
-  end
-  return Factor(vars, fnew)
+    function fnew(xs...)
+        #apply(fct.f, (xs))
+        return (fct.f(xs...) + offset) / (Z + length(vars) * offset) 
+    end
+    return Factor(vars, fnew)
 end
 
 # Return a reduced factor
@@ -56,29 +57,30 @@ function reduce_factor(fct::AbstractFactor, newvars::Array{Variable, 1})
   else
     # The returned factor function gets only the newvars as arguments
     function f(newxs...)
-      @assert length(newxs) == length(newvars)
+        @assert length(newxs) == length(newvars)
 
-      array_that_will_be_tuple = zeros(Int, length(fullvars))
-      # Initialize the newxs only once in the array
-      for (idx, var) in enumerate(newxs)
-        array_that_will_be_tuple[new_var_idxes[idx]] = var
-      end
-
-      # And
-      res = 0
-
-      # enumerate the summed out variables
-      for t in apply(product, (map(x->tuple(values(x.d)...), summed_out)))
-
-        for (idx, newvar) in enumerate(t)
-          array_that_will_be_tuple[summed_out_idxes[idx]] = newvar
+        array_that_will_be_tuple = zeros(Int, length(fullvars))
+        # Initialize the newxs only once in the array
+        for (idx, var) in enumerate(newxs)
+            array_that_will_be_tuple[new_var_idxes[idx]] = var
         end
-        # apply the old factor and sum
-        res += apply(fct.f, apply(tuple, array_that_will_be_tuple))
-      end
-      return res
+
+        # And
+        res = 0
+
+        # enumerate the summed out variables
+        for t in product((map(x->tuple(values(x.d)...), summed_out))...)
+            #apply(product, (map(x->tuple(values(x.d)...), summed_out)))
+
+            for (idx, newvar) in enumerate(t)
+                array_that_will_be_tuple[summed_out_idxes[idx]] = newvar
+            end
+            # apply the old factor and sum
+            res += apply(fct.f, apply(tuple, array_that_will_be_tuple))
+        end
+        return res
     end
-    return Factor(newvars, f)
+      return Factor(newvars, f)
   end
 
 end

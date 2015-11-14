@@ -224,7 +224,7 @@ type DiscreteFactor <: AbstractFactor
     ############################################
     # Part 2: Mapping of distribution to factors
     ############################################
-    supported_distributions = {:Categorical=>{:parameters=>1}, :MultivariateNormal=>{:parameters=>2}}
+    supported_distributions = Dict{Any, Any}(:Categorical=>Dict{Any,Int}(:parameters=>1), :MultivariateNormal=>Dict{Any,Int}(:parameters=>2))
 
 
 
