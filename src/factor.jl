@@ -184,7 +184,7 @@ type DiscreteFactor <: AbstractFactor
             else
                 # Now we assume all variables are binary
 
-                DiscreteFactor([Variable(string(char(x))) for x in 65:(65+int(log2(l))-1)], table)
+                DiscreteFactor([Variable(string(Char(x))) for x in 65:(65+round(Int, log2(l))-1)], table)
             end
         end
 
