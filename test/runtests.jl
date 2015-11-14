@@ -9,8 +9,8 @@ for t in tests
 end
 
 for e in examples
-  fpath = "../examples/$e.jl"
-  println("running $fpath ...")
-  include(fpath)
-  println("Successfully ran $fpath")
+    fpath = "../examples/$e.jl"
+    println("running $fpath ...")
+    include(fpath)
+    println("Successfully ran $fpath")
 end
